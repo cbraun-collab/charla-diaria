@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Charla Diaria">
+  <meta name="apple-mobile-web-app-title" content="Charla Diaria">G
 
   <!-- Google API client -->
   <script src="https://apis.google.com/js/api.js"></script>
@@ -843,14 +843,20 @@
     if (!a) return;
     if (!a.nombre.trim()) { toast('Ingrese el nombre del trabajador', 'error'); return; }
     if (!a.rut.trim()) { toast('Ingrese el RUT del trabajador', 'error'); return; }
-    const canvas = document.getElementById(`canvas-${id}`);
-    const dataUrl = canvas.toDataURL('image/png');
-    // Verificar que hay trazos (no solo canvas vacío)
-    const ctx = canvas.getContext('2d');
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const canvasOrig = document.getElementById(`canvas-${id}`);
+    const ctx = canvasOrig.getContext('2d');
+    const data = ctx.getImageData(0, 0, canvasOrig.width, canvasOrig.height).data;
     const tieneTrazos = data.some(v => v !== 0);
     if (!tieneTrazos) { toast('Por favor firme en el espacio indicado', 'error'); return; }
-    a.firma = dataUrl;
+    // Canvas temporal con fondo BLANCO — evita PNG transparente que se ve negro
+    const canvasBlanco = document.createElement('canvas');
+    canvasBlanco.width = canvasOrig.width;
+    canvasBlanco.height = canvasOrig.height;
+    const ctxB = canvasBlanco.getContext('2d');
+    ctxB.fillStyle = '#ffffff';
+    ctxB.fillRect(0, 0, canvasBlanco.width, canvasBlanco.height);
+    ctxB.drawImage(canvasOrig, 0, 0);
+    a.firma = canvasBlanco.toDataURL('image/png');
     a.firmado = true;
     a.abierto = false;
     renderAsistentes();
