@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Charla Diaria – SENERCOM</title>
+  <meta name="description" content="Registro de Trabajo Seguro - SENERCOM Limitada">
+  <meta name="theme-color" content="#003B49">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Charla Diaria">
+
+  <!-- Google API client -->
+  <script src="https://apis.google.com/js/api.js"></script>
+
+  <style>
+    :root {
+      --azul: #003B49;
+      --naranja: #CF4520;
+      --azul-claro: #005f70;
+      --fondo: #f5f7f8;
+      --borde: #d0d7db;
+      --texto: #1a2426;
+      --texto-sec: #4a6068;
+      --blanco: #ffffff;
+      --verde: #2e7d32;
+      --rojo: #c62828;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--fondo); color: var(--texto); }
+
+    /* ── Encabezado ── */
+    .app-header {
+      background: var(--azul);
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo-circle {
+      width: 38px; height: 38px;
+      background: var(--naranja);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px; color: white; flex-shrink: 0;
+      letter-spacing: 0.5px;
+    }
+    .header-title { font-size: 15px; font-weight: 600; line-height: 1.2; }
+    .header-sub { font-size: 11px; opacity: 0.75; }
+
+    /* ── Navegación por pasos ── */
+    .stepper {
+      display: flex;
+      background: var(--azul-claro);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .stepper::-webkit-scrollbar { display: none; }
+    .step-btn {
+      flex: 1; min-width: 70px;
+      padding: 9px 6px;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .step-btn.active { color: white; border-bottom-color: var(--naranja); }
+    .step-btn.done { color: rgba(255,255,255,0.85); }
+    .step-icon { font-size: 16px; }
+
+    /* ── Contenido principal ── */
+    .main { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+    /* ── Secciones ── */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* ── Tarjeta formulario ── */
+    .card {
+      background: var(--blanco);
+      border-radius: 12px;
+      border: 1px solid var(--borde);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--azul);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--naranja);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-title::before { content: attr(data-icon); font-size: 16px; }
+
+    /* ── Campos ── */
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--texto-sec); margin-bottom: 4px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--borde);
+      border-radius: 8px;
+      font-size: 15px;
+      color: var(--texto);
+      background: var(--blanco);
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: var(--azul);
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ── Checkboxes de riesgos ── */
+    .riesgos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .riesgo-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      background: var(--fondo);
+      border-radius: 7px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 12px;
+      color: var(--texto);
+      user-select: none;
+    }
+    .riesgo-item:active { background: #e8eff2; }
+    .riesgo-item.checked { background: #e6f0f3; border-color: var(--azul); color: var(--azul); font-weight: 500; }
+    .riesgo-item input[type=checkbox] { display: none; }
+    .riesgo-check {
+      width: 18px; height: 18px;
+      border: 2px solid var(--borde);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: white;
+      transition: all 0.15s;
+    }
+    .riesgo-item.checked .riesgo-check {
+      background: var(--azul);
+      border-color: var(--azul);
+    }
+    .riesgo-item.checked .riesgo-check::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
+
+    /* ── Tipos de charla ── */
+    .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .tipo-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 12px;
+      background: var(--fondo);
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .tipo-item.selected { background: #fff3ee; border-color: var(--naranja); color: var(--naranja); font-weight: 600; }
+    .tipo-radio { width: 18px; height: 18px; border: 2px solid var(--borde); border-radius: 50%; flex-shrink: 0; transition: all 0.15s; background: white; }
+    .tipo-item.selected .tipo-radio { border-color: var(--naranja); background: var(--naranja); box-shadow: inset 0 0 0 3px white; }
+
+    /* ── Lista de asistentes ── */
+    .asistente-card {
+      background: var(--fondo);
+      border-radius: 10px;
+      border: 1.5px solid var(--borde);
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .asistente-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 14px;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .asistente-num {
+      width: 28px; height: 28px;
+      background: var(--azul);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .asistente-num.firmado { background: var(--verde); }
+    .asistente-info { flex: 1; }
+    .asistente-nombre { font-size: 14px; font-weight: 600; }
+    .asistente-rut { font-size: 12px; color: var(--texto-sec); }
+    .asistente-estado { font-size: 11px; font-weight: 600; }
+    .asistente-estado.firmado { color: var(--verde); }
+    .asistente-estado.pendiente { color: var(--naranja); }
+    .asistente-body { padding: 0 14px 14px; }
+    .asistente-body.hidden { display: none; }
+
+    /* ── Canvas de firma ── */
+    .firma-container {
+      background: white;
+      border-radius: 8px;
+      border: 2px dashed var(--borde);
+      position: relative;
+      touch-action: none;
+      margin-top: 8px;
+    }
+    .firma-container canvas {
+      display: block;
+      width: 100%;
+      height: 140px;
+      border-radius: 6px;
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .firma-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 13px;
+      color: #bbb;
+      pointer-events: none;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+    .firma-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .btn-sm {
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sm:active { transform: scale(0.97); }
+    .btn-limpiar { background: var(--fondo); color: var(--texto-sec); border: 1.5px solid var(--borde); }
+    .btn-confirmar { background: var(--azul); color: white; flex: 1; }
+    .btn-confirmar:disabled { background: #9bb0b6; cursor: not-allowed; }
+
+    /* ── Botón agregar asistente ── */
+    .btn-agregar {
+      width: 100%;
+      padding: 13px;
+      background: var(--fondo);
+      border: 2px dashed var(--borde);
+      border-radius: 10px;
+      color: var(--azul);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-agregar:hover { background: #e8eff2; border-color: var(--azul); }
+
+    /* ── Botones de acción principal ── */
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: var(--azul);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: all 0.15s;
+      margin-top: 8px;
+    }
+    .btn-primary:active { transform: scale(0.98); background: var(--azul-claro); }
+    .btn-primary:disabled { background: #9bb0b6; cursor: not-allowed; }
+    .btn-naranja { background: var(--naranja); }
+    .btn-naranja:active { background: #b03918; }
+    .btn-secondary {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      color: var(--azul);
+      border: 2px solid var(--azul);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.15s;
+    }
+    .btn-secondary:active { background: #e6f0f3; }
+
+    /* ── Vista previa / resumen ── */
+    .resumen-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--fondo); font-size: 14px; }
+    .resumen-row:last-child { border-bottom: none; }
+    .resumen-label { color: var(--texto-sec); }
+    .resumen-valor { font-weight: 600; color: var(--texto); text-align: right; max-width: 60%; }
+
+    /* ── Badge de estado ── */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-verde { background: #e8f5e9; color: var(--verde); }
+    .badge-naranja { background: #fff3ee; color: var(--naranja); }
+    .badge-gris { background: #f0f0f0; color: #666; }
+
+    /* ── Estado de subida ── */
+    .upload-status {
+      padding: 20px;
+      text-align: center;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .upload-icon { font-size: 48px; margin-bottom: 10px; }
+    .upload-msg { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .upload-sub { font-size: 13px; color: var(--texto-sec); }
+    .upload-status.success { background: #e8f5e9; }
+    .upload-status.error { background: #ffebee; }
+    .upload-status.pending { background: #fff8e1; }
+    .upload-status.loading { background: #e3f2fd; }
+
+    /* ── Progress bar ── */
+    .progress-bar { height: 4px; background: var(--borde); border-radius: 2px; overflow: hidden; margin: 12px 0; }
+    .progress-fill { height: 100%; background: var(--azul); border-radius: 2px; transition: width 0.3s; }
+
+    /* ── Info box ── */
+    .info-box { background: #e6f0f3; border-left: 4px solid var(--azul); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--azul); margin-bottom: 12px; line-height: 1.5; }
+
+    /* ── Drive config ── */
+    .drive-input { font-size: 13px !important; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
+    .spinner-dark { border-color: rgba(0,60,73,0.2); border-top-color: var(--azul); }
+
+    /* ── Notificación toast ── */
+    #toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #1a2426; color: white;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 14px; font-weight: 500;
+      z-index: 9999; transition: transform 0.3s;
+      max-width: 320px; text-align: center;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { background: var(--verde); }
+    #toast.error { background: var(--rojo); }
+
+    /* ── Offline badge ── */
+    #offline-badge {
+      display: none;
+      background: var(--naranja);
+      color: white;
+      text-align: center;
+      font-size: 12px;
+      padding: 6px;
+      font-weight: 600;
+    }
+    body.offline #offline-badge { display: block; }
+
+    @media (min-width: 600px) {
+      .riesgos-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div id="offline-badge">📵 Sin conexión — el registro se guardará para sincronizar luego</div>
+
+  <header class="app-header">
+    <div class="logo-circle">SNR</div>
+    <div>
+      <div class="header-title">Charla Diaria</div>
+      <div class="header-sub">SENERCOM Limitada</div>
+    </div>
+  </header>
+
+  <nav class="stepper" id="stepper">
+    <button class="step-btn active" onclick="irAPaso(0)" id="tab0">
+      <span class="step-icon">📋</span>
+      <span>Obra</span>
+    </button>
+    <button class="step-btn" onclick="irAPaso(1)" id="tab1">
+      <span class="step-icon">⚠️</span>
+      <span>Riesgos</span>
+    </button>
+    <button class="step-btn" onclick="irAPaso(2)" id="tab2">
+      <span class="step-icon">✍️</span>
+      <span>Firmas</span>
+    </button>
+    <button class="step-btn" onclick="irAPaso(3)" id="tab3">
+      <span class="step-icon">☁️</span>
+      <span>Guardar</span>
+    </button>
+  </nav>
+
+  <div class="main">
+
+    <!-- PASO 1: DATOS DE LA OBRA -->
+    <div class="section visible" id="paso0">
+      <div class="card">
+        <div class="card-title" data-icon="🏗️">Datos de la obra</div>
+        <div class="field">
+          <label>Obra o Faena *</label>
+          <input type="text" id="obra" placeholder="Ej: Edificio Costanera – Piso 5" autocomplete="off">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Fecha *</label>
+            <input type="date" id="fecha">
+          </div>
+          <div class="field">
+            <label>Área de trabajo</label>
+            <input type="text" id="area" placeholder="Ej: Sala eléctrica">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Hora inicio</label>
+            <input type="time" id="hora_inicio">
+          </div>
+          <div class="field">
+            <label>Hora término</label>
+            <input type="time" id="hora_termino">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-icon="👷">Relator</div>
+        <div class="field">
+          <label>Nombre del relator *</label>
+          <input type="text" id="relator" placeholder="Nombre completo" autocomplete="off">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Cargo</label>
+            <input type="text" id="cargo_relator" placeholder="Ej: Prevencionista">
+          </div>
+          <div class="field">
+            <label>Curso específico</label>
+            <input type="text" id="curso" placeholder="Ej: Altura">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-icon="📝">Tipo de charla</div>
+        <div class="tipo-grid" id="tipo-grid">
+          <div class="tipo-item" onclick="selTipo(this, 'Riesgos específicos')"><div class="tipo-radio"></div>Riesgos específicos</div>
+          <div class="tipo-item" onclick="selTipo(this, 'Charla específica')"><div class="tipo-radio"></div>Charla específica</div>
+          <div class="tipo-item" onclick="selTipo(this, 'Re instrucción de accidente')"><div class="tipo-radio"></div>Re instrucción accidente</div>
+          <div class="tipo-item" onclick="selTipo(this, 'Reunión de trabajo')"><div class="tipo-radio"></div>Reunión de trabajo</div>
+          <div class="tipo-item" onclick="selTipo(this, 'Charla de 5 minutos')"><div class="tipo-radio"></div>Charla de 5 minutos</div>
+          <div class="tipo-item" onclick="selTipo(this, 'Otros')"><div class="tipo-radio"></div>Otros</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-icon="💬">Temas y observaciones</div>
+        <div class="field">
+          <textarea id="temas" placeholder="Describa los temas tratados en la charla..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="validarPaso0()">Continuar → Riesgos</button>
+    </div>
+
+    <!-- PASO 2: RIESGOS -->
+    <div class="section" id="paso1">
+      <div class="card">
+        <div class="card-title" data-icon="⚠️">Riesgos identificados</div>
+        <div class="info-box">Marque todos los riesgos asociados a la actividad de hoy.</div>
+        <div class="riesgos-grid" id="riesgos-grid">
+          <!-- Se genera dinámicamente -->
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title" data-icon="➕">Otros riesgos</div>
+        <div class="field">
+          <input type="text" id="otros_riesgos" placeholder="Especifique otros riesgos no listados...">
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-secondary" style="flex:1" onclick="irAPaso(0)">← Volver</button>
+        <button class="btn-primary" style="flex:2; margin-top:0" onclick="irAPaso(2)">Continuar → Firmas</button>
+      </div>
+    </div>
+
+    <!-- PASO 3: ASISTENTES Y FIRMAS -->
+    <div class="section" id="paso2">
+      <div class="info-box" id="firma-info">Cada trabajador debe ingresar sus datos y firmar en el espacio indicado.</div>
+
+      <div id="lista-asistentes"></div>
+
+      <button class="btn-agregar" onclick="agregarAsistente()">
+        <span style="font-size:20px;">+</span> Agregar trabajador
+      </button>
+
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn-secondary" style="flex:1" onclick="irAPaso(1)">← Volver</button>
+        <button class="btn-primary" id="btn-finalizar" style="flex:2; margin-top:0" onclick="validarFirmas()">Revisar y guardar →</button>
+      </div>
+    </div>
+
+    <!-- PASO 4: GUARDAR -->
+    <div class="section" id="paso3">
+      <div id="resumen-container">
+        <div class="card">
+          <div class="card-title" data-icon="📄">Resumen del registro</div>
+          <div id="resumen-body"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title" data-icon="☁️">Subir a Google Drive</div>
+          <div class="info-box">El registro se guardará como imagen PNG en la carpeta de SENERCOM en Drive.</div>
+
+          <div class="field">
+            <label>ID de carpeta Google Drive</label>
+            <input type="text" id="drive-folder-id" class="drive-input" placeholder="1UuXpmOifYejccYgrErGVFgPy-CJV95MO" value="1UuXpmOifYejccYgrErGVFgPy-CJV95MO">
+          </div>
+
+          <div id="auth-status" style="margin-bottom:12px; display:none;"></div>
+
+          <button class="btn-primary btn-naranja" id="btn-subir" onclick="iniciarSubida()">
+            <span id="btn-subir-text">🔐 Autorizar y guardar en Drive</span>
+          </button>
+          <button class="btn-secondary" onclick="guardarLocalSolo()">💾 Solo guardar imagen local</button>
+        </div>
+      </div>
+
+      <div id="resultado-container" style="display:none;">
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <div id="toast"></div>
+
+  <!-- SCRIPTS -->
+  <script>
+  // ═══════════════════════════════════════════════════════
+  //  DATOS GLOBALES
+  // ═══════════════════════════════════════════════════════
+  let pasoActual = 0;
+  let tipoSeleccionado = '';
+  let asistentes = [];
+  let firmaRelator = null;
+
+  const RIESGOS = [
+    'Sobresfuerzo manejo manual','Atropello','Caída a distinto nivel',
+    'Caída al mismo nivel','Caída de material','Mov. repetitivo',
+    'Choque c/ elem. móviles','Choque c/ obj. fijos','Contacto electricidad',
+    'Contacto con fuego','Sobretensión física','Obj. calientes',
+    'Obj. cortantes','Obj. punzantes','Exposición a calor',
+    'Exposición a frío','Exposición a gases','Espacio confinado',
+    'Trabajos adyacentes','Exposición a polvo','Golpe c/ herramienta',
+    'Incendio','Radiación ultravioleta','Trabajos en altura',
+    'Exposición a ruido','Exposición a vapores','Maniobras',
+    'Excavaciones','Explosión'
+  ];
+
+  const GOOGLE_CLIENT_ID = 'TU_GOOGLE_CLIENT_ID_AQUI';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+  let tokenCliente = null;
+  let accessToken = null;
+
+  // ═══════════════════════════════════════════════════════
+  //  INICIALIZACIÓN
+  // ═══════════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', () => {
+    const hoy = new Date();
+    document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
+    const hh = String(hoy.getHours()).padStart(2,'0');
+    const mm = String(hoy.getMinutes()).padStart(2,'0');
+    document.getElementById('hora_inicio').value = `${hh}:${mm}`;
+
+    generarRiesgos();
+    cargarDesdeStorage();
+
+    // Monitorear conexión
+    window.addEventListener('offline', () => document.body.classList.add('offline'));
+    window.addEventListener('online', () => document.body.classList.remove('offline'));
+    if (!navigator.onLine) document.body.classList.add('offline');
+  });
+
+  // ═══════════════════════════════════════════════════════
+  //  NAVEGACIÓN POR PASOS
+  // ═══════════════════════════════════════════════════════
+  function irAPaso(n) {
+    document.getElementById(`paso${pasoActual}`).classList.remove('visible');
+    document.getElementById(`tab${pasoActual}`).classList.remove('active');
+    pasoActual = n;
+    document.getElementById(`paso${n}`).classList.add('visible');
+    document.getElementById(`tab${n}`).classList.add('active');
+    window.scrollTo(0, 0);
+    guardarEnStorage();
+    if (n === 3) construirResumen();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  TIPO DE CHARLA
+  // ═══════════════════════════════════════════════════════
+  function selTipo(el, tipo) {
+    document.querySelectorAll('.tipo-item').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected');
+    tipoSeleccionado = tipo;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  VALIDACIÓN PASO 0
+  // ═══════════════════════════════════════════════════════
+  function validarPaso0() {
+    const obra = document.getElementById('obra').value.trim();
+    const fecha = document.getElementById('fecha').value;
+    const relator = document.getElementById('relator').value.trim();
+    if (!obra) { toast('Complete el campo Obra o Faena', 'error'); return; }
+    if (!fecha) { toast('Seleccione la fecha', 'error'); return; }
+    if (!relator) { toast('Ingrese el nombre del relator', 'error'); return; }
+    irAPaso(1);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  RIESGOS
+  // ═══════════════════════════════════════════════════════
+  function generarRiesgos() {
+    const g = document.getElementById('riesgos-grid');
+    RIESGOS.forEach((r, i) => {
+      const div = document.createElement('div');
+      div.className = 'riesgo-item';
+      div.id = `riesgo-${i}`;
+      div.innerHTML = `<div class="riesgo-check"></div><span>${r}</span>`;
+      div.addEventListener('click', () => {
+        div.classList.toggle('checked');
+      });
+      g.appendChild(div);
+    });
+  }
+
+  function getRiesgosSeleccionados() {
+    const sel = [];
+    document.querySelectorAll('.riesgo-item.checked').forEach(el => {
+      sel.push(el.querySelector('span').textContent);
+    });
+    const otros = document.getElementById('otros_riesgos').value.trim();
+    if (otros) sel.push(otros);
+    return sel;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  ASISTENTES
+  // ═══════════════════════════════════════════════════════
+  function agregarAsistente() {
+    const id = Date.now();
+    asistentes.push({ id, nombre: '', rut: '', especialidad: '', firma: null, firmado: false, abierto: true });
+    renderAsistentes();
+    setTimeout(() => {
+      const inputs = document.querySelectorAll('.asistente-nombre-input');
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }, 100);
+  }
+
+  function renderAsistentes() {
+    const cont = document.getElementById('lista-asistentes');
+    cont.innerHTML = '';
+    asistentes.forEach((a, idx) => {
+      const div = document.createElement('div');
+      div.className = 'asistente-card';
+      div.id = `asistente-card-${a.id}`;
+      div.innerHTML = `
+        <div class="asistente-header" onclick="toggleAsistente(${a.id})">
+          <div class="asistente-num ${a.firmado ? 'firmado' : ''}">${idx + 1}</div>
+          <div class="asistente-info">
+            <div class="asistente-nombre">${a.nombre || 'Trabajador ' + (idx + 1)}</div>
+            <div class="asistente-rut">${a.rut || 'RUT no ingresado'}</div>
+          </div>
+          <div class="asistente-estado ${a.firmado ? 'firmado' : 'pendiente'}">${a.firmado ? '✓ Firmado' : 'Pendiente'}</div>
+        </div>
+        <div class="asistente-body ${a.abierto ? '' : 'hidden'}" id="body-${a.id}">
+          <div class="field">
+            <label>Nombre completo *</label>
+            <input type="text" class="asistente-nombre-input" placeholder="Nombre y apellido" value="${a.nombre}" oninput="actualizarAsistente(${a.id}, 'nombre', this.value)" style="font-size:16px;">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>RUT *</label>
+              <input type="text" placeholder="12.345.678-9" value="${a.rut}" oninput="actualizarAsistente(${a.id}, 'rut', this.value)" style="font-size:16px;">
+            </div>
+            <div class="field">
+              <label>Especialidad</label>
+              <input type="text" placeholder="Ej: Electricista" value="${a.especialidad}" oninput="actualizarAsistente(${a.id}, 'especialidad', this.value)" style="font-size:16px;">
+            </div>
+          </div>
+          <div style="margin-top:4px; margin-bottom:6px; font-size:12px; font-weight:600; color:var(--texto-sec);">FIRMA *</div>
+          <div class="firma-container" id="fc-${a.id}">
+            <canvas id="canvas-${a.id}" height="140"></canvas>
+            ${!a.firma ? '<div class="firma-label">Firme aquí con el dedo</div>' : ''}
+          </div>
+          <div class="firma-actions">
+            <button class="btn-sm btn-limpiar" onclick="limpiarFirma(${a.id})">🗑 Limpiar</button>
+            <button class="btn-sm btn-confirmar" id="btn-confirmar-${a.id}" onclick="confirmarFirma(${a.id})">✓ Confirmar firma</button>
+            <button class="btn-sm btn-limpiar" style="color:var(--rojo);border-color:#ffcdd2;" onclick="eliminarAsistente(${a.id})">✕</button>
+          </div>
+        </div>
+      `;
+      cont.appendChild(div);
+      iniciarCanvas(a.id);
+      if (a.firma) {
+        const canvas = document.getElementById(`canvas-${a.id}`);
+        const img = new Image();
+        img.onload = () => {
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = a.firma;
+      }
+    });
+  }
+
+  function toggleAsistente(id) {
+    const a = asistentes.find(x => x.id === id);
+    if (a) {
+      a.abierto = !a.abierto;
+      const body = document.getElementById(`body-${id}`);
+      body.classList.toggle('hidden', !a.abierto);
+    }
+  }
+
+  function actualizarAsistente(id, campo, valor) {
+    const a = asistentes.find(x => x.id === id);
+    if (a) a[campo] = valor;
+    const header = document.querySelector(`#asistente-card-${id} .asistente-nombre`);
+    const subheader = document.querySelector(`#asistente-card-${id} .asistente-rut`);
+    if (campo === 'nombre' && header) header.textContent = valor || 'Trabajador';
+    if (campo === 'rut' && subheader) subheader.textContent = valor || 'RUT no ingresado';
+  }
+
+  function eliminarAsistente(id) {
+    asistentes = asistentes.filter(x => x.id !== id);
+    renderAsistentes();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  CANVAS DE FIRMA
+  // ═══════════════════════════════════════════════════════
+  function iniciarCanvas(id) {
+    const canvas = document.getElementById(`canvas-${id}`);
+    if (!canvas) return;
+    const container = document.getElementById(`fc-${id}`);
+    canvas.width = container.offsetWidth || 300;
+    canvas.height = 140;
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#003B49';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    let drawing = false;
+    let trazos = 0;
+
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      if (e.touches) {
+        return {
+          x: (e.touches[0].clientX - rect.left) * scaleX,
+          y: (e.touches[0].clientY - rect.top) * scaleY
+        };
+      }
+      return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    };
+
+    const start = (e) => {
+      e.preventDefault();
+      drawing = true;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      const label = canvas.parentElement.querySelector('.firma-label');
+      if (label) label.style.opacity = '0';
+    };
+    const draw = (e) => {
+      if (!drawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      trazos++;
+    };
+    const end = (e) => {
+      if (!drawing) return;
+      drawing = false;
+      ctx.closePath();
+      if (trazos > 2) {
+        const a = asistentes.find(x => x.id === id);
+        if (a) a.firmaTemp = canvas.toDataURL('image/png');
+      }
+    };
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', end);
+  }
+
+  function limpiarFirma(id) {
+    const canvas = document.getElementById(`canvas-${id}`);
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const a = asistentes.find(x => x.id === id);
+    if (a) { a.firma = null; a.firmaTemp = null; a.firmado = false; }
+    const label = canvas.parentElement.querySelector('.firma-label');
+    if (label) label.style.opacity = '1';
+    renderNumeros();
+  }
+
+  function confirmarFirma(id) {
+    const a = asistentes.find(x => x.id === id);
+    if (!a) return;
+    if (!a.nombre.trim()) { toast('Ingrese el nombre del trabajador', 'error'); return; }
+    if (!a.rut.trim()) { toast('Ingrese el RUT del trabajador', 'error'); return; }
+    const canvas = document.getElementById(`canvas-${id}`);
+    const dataUrl = canvas.toDataURL('image/png');
+    // Verificar que hay trazos (no solo canvas vacío)
+    const ctx = canvas.getContext('2d');
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const tieneTrazos = data.some(v => v !== 0);
+    if (!tieneTrazos) { toast('Por favor firme en el espacio indicado', 'error'); return; }
+    a.firma = dataUrl;
+    a.firmado = true;
+    a.abierto = false;
+    renderAsistentes();
+    toast('✓ Firma confirmada', 'success');
+  }
+
+  function renderNumeros() {
+    asistentes.forEach((a, idx) => {
+      const num = document.querySelector(`#asistente-card-${a.id} .asistente-num`);
+      if (num) num.className = `asistente-num ${a.firmado ? 'firmado' : ''}`;
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  VALIDAR FIRMAS
+  // ═══════════════════════════════════════════════════════
+  function validarFirmas() {
+    if (asistentes.length === 0) { toast('Agregue al menos un trabajador', 'error'); return; }
+    const sinFirmar = asistentes.filter(a => !a.firmado);
+    if (sinFirmar.length > 0) {
+      toast(`${sinFirmar.length} trabajador(es) sin confirmar firma`, 'error');
+      return;
+    }
+    irAPaso(3);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  RESUMEN
+  // ═══════════════════════════════════════════════════════
+  function construirResumen() {
+    const riesgos = getRiesgosSeleccionados();
+    const fecha = document.getElementById('fecha').value;
+    const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '-';
+
+    document.getElementById('resumen-body').innerHTML = `
+      <div class="resumen-row"><span class="resumen-label">Obra / Faena</span><span class="resumen-valor">${document.getElementById('obra').value}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Fecha</span><span class="resumen-valor">${fechaFmt}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Relator</span><span class="resumen-valor">${document.getElementById('relator').value}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Tipo de charla</span><span class="resumen-valor">${tipoSeleccionado || 'No especificado'}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Riesgos</span><span class="resumen-valor">${riesgos.length > 0 ? riesgos.length + ' identificados' : 'Ninguno marcado'}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Asistentes</span><span class="resumen-valor"><span class="badge badge-verde">✓ ${asistentes.filter(a=>a.firmado).length} con firma</span></span></div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  GENERAR IMAGEN DEL REGISTRO
+  // ═══════════════════════════════════════════════════════
+  async function generarImagen() {
+    const canvas = document.createElement('canvas');
+    const W = 1240, MARGEN = 40;
+    canvas.width = W;
+
+    const ctx = canvas.getContext('2d');
+
+    // Calcular altura necesaria
+    const filasAsistentes = Math.max(asistentes.length, 5);
+    const alturaBase = 200 + 160 + 260 + (filasAsistentes * 50) + 200;
+    canvas.height = alturaBase;
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, canvas.height);
+
+    let y = 0;
+
+    // ── Cabecera ──
+    ctx.fillStyle = '#003B49';
+    ctx.fillRect(0, 0, W, 90);
+    ctx.fillStyle = '#CF4520';
+    ctx.fillRect(0, 90, W, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px Arial';
+    ctx.fillText('REGISTRO DE TRABAJO SEGURO', MARGEN, 42);
+    ctx.font = '16px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillText('SENERCOM LIMITADA — Art. N°21 Decreto N°40 Ley 16.744', MARGEN, 72);
+    // Logo círculo
+    ctx.fillStyle = '#CF4520';
+    ctx.beginPath();
+    ctx.arc(W - 60, 45, 30, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('SNR', W - 60, 51);
+    ctx.textAlign = 'left';
+
+    y = 115;
+
+    // ── Función helper: cuadro de campo ──
+    const campo = (label, valor, x, w, cy, h = 36) => {
+      ctx.strokeStyle = '#d0d7db';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x, cy, w, h);
+      ctx.fillStyle = '#f5f7f8';
+      ctx.fillRect(x, cy, w, 16);
+      ctx.fillStyle = '#4a6068';
+      ctx.font = '10px Arial';
+      ctx.fillText(label.toUpperCase(), x + 6, cy + 11);
+      ctx.fillStyle = '#1a2426';
+      ctx.font = '13px Arial';
+      ctx.fillText(valor || '', x + 6, cy + 29);
+    };
+
+    const fecha = document.getElementById('fecha').value;
+    const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL') : '';
+
+    // Fila 1
+    const col1W = W * 0.5 - MARGEN;
+    const col2W = W * 0.25 - 5;
+    const col3W = W * 0.25 - MARGEN + 5;
+    campo('Obra o Faena', document.getElementById('obra').value, MARGEN, W - MARGEN * 2, y, 40);
+    y += 40;
+    campo('Fecha', fechaFmt, MARGEN, col2W, y);
+    campo('Hora inicio', document.getElementById('hora_inicio').value, MARGEN + col2W, col2W, y);
+    campo('Hora término', document.getElementById('hora_termino').value, MARGEN + col2W * 2, W - MARGEN * 2 - col2W * 2, y);
+    y += 36;
+    campo('Área de trabajo', document.getElementById('area').value, MARGEN, col1W, y);
+    campo('Relator', document.getElementById('relator').value, MARGEN + col1W, W - MARGEN * 2 - col1W, y);
+    y += 36;
+    campo('Cargo relator', document.getElementById('cargo_relator').value, MARGEN, col1W, y);
+    campo('Tipo de charla', tipoSeleccionado, MARGEN + col1W, W - MARGEN * 2 - col1W, y);
+    y += 36;
+    campo('Temas / Observaciones', document.getElementById('temas').value, MARGEN, W - MARGEN * 2, y, 50);
+    y += 50;
+
+    // ── Sección riesgos ──
+    y += 10;
+    ctx.fillStyle = '#003B49';
+    ctx.fillRect(MARGEN, y, W - MARGEN * 2, 24);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText('RIESGOS IDENTIFICADOS', MARGEN + 8, y + 16);
+    y += 28;
+
+    const riesgos = getRiesgosSeleccionados();
+    const colsR = 3;
+    const rW = (W - MARGEN * 2) / colsR;
+    const rowsR = Math.ceil(RIESGOS.length / colsR);
+
+    for (let i = 0; i < RIESGOS.length; i++) {
+      const row = Math.floor(i / colsR);
+      const col = i % colsR;
+      const rx = MARGEN + col * rW;
+      const ry = y + row * 22;
+      const checked = riesgos.includes(RIESGOS[i]);
+      ctx.strokeStyle = '#d0d7db';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(rx, ry, rW, 22);
+      if (checked) {
+        ctx.fillStyle = '#e6f0f3';
+        ctx.fillRect(rx, ry, rW, 22);
+      }
+      // Checkbox
+      ctx.strokeStyle = checked ? '#003B49' : '#aaa';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(rx + 5, ry + 5, 12, 12);
+      if (checked) {
+        ctx.fillStyle = '#003B49';
+        ctx.fillRect(rx + 5, ry + 5, 12, 12);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px Arial';
+        ctx.fillText('✓', rx + 7, ry + 14);
+      }
+      ctx.fillStyle = '#1a2426';
+      ctx.font = '10px Arial';
+      ctx.fillText(RIESGOS[i], rx + 22, ry + 14);
+    }
+
+    y += rowsR * 22 + 12;
+
+    // Otros riesgos
+    const otros = document.getElementById('otros_riesgos').value.trim();
+    if (otros) {
+      campo('Otros riesgos', otros, MARGEN, W - MARGEN * 2, y, 30);
+      y += 32;
+    }
+
+    // ── Tabla asistentes ──
+    y += 10;
+    ctx.fillStyle = '#003B49';
+    ctx.fillRect(MARGEN, y, W - MARGEN * 2, 28);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText('REGISTRO DE ASISTENTES', MARGEN + 8, y + 19);
+    y += 28;
+
+    const cols = [40, 280, 130, 160, 0]; // anchos: Nº, Nombre, RUT, Especialidad, Firma
+    const firmaW = W - MARGEN * 2 - cols.slice(0,4).reduce((a,b) => a+b, 0);
+    cols[4] = firmaW;
+    const headers = ['N°', 'Nombre completo', 'RUT', 'Especialidad', 'Firma'];
+
+    // Encabezado tabla
+    let xh = MARGEN;
+    headers.forEach((h, i) => {
+      ctx.fillStyle = '#005f70';
+      ctx.fillRect(xh, y, cols[i], 28);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(h, xh + cols[i] / 2, y + 18);
+      xh += cols[i];
+    });
+    ctx.textAlign = 'left';
+    y += 28;
+
+    // Filas de asistentes
+    const filasTotal = Math.max(asistentes.length, 8);
+    for (let i = 0; i < filasTotal; i++) {
+      const a = asistentes[i];
+      const rowH = 52;
+      const fy = y + i * rowH;
+      let xc = MARGEN;
+      const bg = i % 2 === 0 ? '#ffffff' : '#f8fafb';
+      ctx.fillStyle = bg;
+      ctx.fillRect(MARGEN, fy, W - MARGEN * 2, rowH);
+
+      cols.forEach((w, ci) => {
+        ctx.strokeStyle = '#d0d7db';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(xc, fy, w, rowH);
+
+        ctx.fillStyle = '#1a2426';
+        if (ci === 0) {
+          ctx.font = 'bold 14px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(i + 1, xc + w / 2, fy + rowH / 2 + 5);
+          ctx.textAlign = 'left';
+        } else if (a) {
+          ctx.font = '12px Arial';
+          const vals = [a.nombre, a.rut, a.especialidad, ''];
+          if (ci < 4) ctx.fillText(vals[ci - 1] || '', xc + 6, fy + 22);
+          // Firma
+          if (ci === 4 && a.firma) {
+            const img = new Image();
+            img.src = a.firma;
+            ctx.drawImage(img, xc + 4, fy + 4, w - 8, rowH - 8);
+          }
+        }
+        xc += w;
+      });
+    }
+
+    y += filasTotal * 52;
+
+    // ── Pie ──
+    y += 16;
+    ctx.fillStyle = '#f5f7f8';
+    ctx.fillRect(MARGEN, y, W - MARGEN * 2, 50);
+    ctx.strokeStyle = '#d0d7db';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(MARGEN, y, W - MARGEN * 2, 50);
+    ctx.fillStyle = '#4a6068';
+    ctx.font = 'italic 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Los firmantes en este registro declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.', W / 2, y + 20);
+    ctx.fillStyle = '#003B49';
+    ctx.font = '10px Arial';
+    ctx.fillText(`Generado: ${new Date().toLocaleString('es-CL')} | SENERCOM Limitada`, W / 2, y + 38);
+    ctx.textAlign = 'left';
+
+    canvas.height = y + 66;
+    // Redibujar fondo completo y repetir... en lugar de eso retornamos tal cual
+    return canvas;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  GOOGLE DRIVE
+  // ═══════════════════════════════════════════════════════
+  function iniciarSubida() {
+    const clientId = document.getElementById('drive-folder-id').dataset.clientId || GOOGLE_CLIENT_ID;
+
+    if (GOOGLE_CLIENT_ID === 'TU_GOOGLE_CLIENT_ID_AQUI') {
+      // Modo demo: guardar solo localmente
+      mostrarInstruccionesConfig();
+      return;
+    }
+
+    if (!accessToken) {
+      autorizarDrive();
+    } else {
+      subirArchivo();
+    }
+  }
+
+  function autorizarDrive() {
+    mostrarEstado('loading', '🔑 Autorizando con Google...', 'Se abrirá una ventana de Google para dar permiso');
+    tokenCliente = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: SCOPES,
+      callback: (resp) => {
+        if (resp.error) {
+          mostrarEstado('error', '✗ Error de autorización', resp.error);
+          return;
+        }
+        accessToken = resp.access_token;
+        subirArchivo();
+      }
+    });
+    tokenCliente.requestAccessToken();
+  }
+
+  async function subirArchivo() {
+    mostrarEstado('loading', '⏳ Generando registro...', 'Espere mientras se procesa la imagen');
+    try {
+      const canvas = await generarImagen();
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+
+      const fecha = document.getElementById('fecha').value.replace(/-/g, '');
+      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '').substring(0, 30);
+      const nombre = `Charla_${fecha}_${obra}.png`;
+      const folderId = document.getElementById('drive-folder-id').value.trim();
+
+      mostrarEstado('loading', '☁️ Subiendo a Google Drive...', `Archivo: ${nombre}`);
+
+      const metadata = { name: nombre, parents: [folderId], mimeType: 'image/png' };
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', blob);
+
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form
+      });
+
+      if (!res.ok) throw new Error(`Error ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+
+      // También descargar localmente
+      descargarLocal(canvas, nombre);
+
+      mostrarResultadoExito(nombre, data.id);
+      limpiarStorage();
+
+    } catch (err) {
+      console.error(err);
+      mostrarEstado('error', '✗ Error al subir', err.message || 'Intente nuevamente');
+    }
+  }
+
+  function mostrarInstruccionesConfig() {
+    document.getElementById('resultado-container').style.display = 'block';
+    document.getElementById('resumen-container').style.display = 'none';
+    document.getElementById('resultado-container').innerHTML = `
+      <div class="upload-status pending">
+        <div class="upload-icon">⚙️</div>
+        <div class="upload-msg">Configuración requerida</div>
+        <div class="upload-sub">Para subir automáticamente a Drive es necesario configurar el Client ID de Google. Consulte las instrucciones de instalación.</div>
+      </div>
+      <div class="info-box">
+        <strong>Mientras tanto, puede guardar el registro localmente:</strong><br>
+        La imagen se descargará en este dispositivo y deberá subirla manualmente a Drive.
+      </div>
+      <button class="btn-primary" onclick="guardarLocalSolo()">💾 Guardar imagen en este dispositivo</button>
+      <button class="btn-secondary" onclick="mostrarResumen()">← Volver</button>
+    `;
+  }
+
+  async function guardarLocalSolo() {
+    try {
+      const btn = document.querySelector('#btn-subir') || document.querySelector('.btn-primary');
+      mostrarEstado('loading', '⏳ Generando imagen...', '');
+      const canvas = await generarImagen();
+      const fecha = document.getElementById('fecha').value.replace(/-/g, '');
+      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+      const nombre = `Charla_${fecha}_${obra}.png`;
+      descargarLocal(canvas, nombre);
+      mostrarResultadoLocal(nombre);
+    } catch (err) {
+      mostrarEstado('error', '✗ Error', err.message);
+    }
+  }
+
+  function descargarLocal(canvas, nombre) {
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png', 0.95);
+    a.download = nombre;
+    a.click();
+  }
+
+  function mostrarEstado(tipo, msg, sub) {
+    document.getElementById('resultado-container').style.display = 'block';
+    document.getElementById('resumen-container').style.display = 'none';
+    const iconos = { loading: '⏳', success: '✅', error: '❌', pending: '⚠️' };
+    document.getElementById('resultado-container').innerHTML = `
+      <div class="upload-status ${tipo}">
+        <div class="upload-icon">${iconos[tipo]}</div>
+        <div class="upload-msg">${msg}</div>
+        <div class="upload-sub">${sub}</div>
+      </div>
+    `;
+  }
+
+  function mostrarResultadoExito(nombre, fileId) {
+    document.getElementById('resultado-container').innerHTML = `
+      <div class="upload-status success">
+        <div class="upload-icon">✅</div>
+        <div class="upload-msg">¡Registro guardado exitosamente!</div>
+        <div class="upload-sub">Archivo: ${nombre}</div>
+      </div>
+      <div class="card">
+        <div class="resumen-row"><span class="resumen-label">Ubicación</span><span class="resumen-valor">Google Drive / SENERCOM</span></div>
+        <div class="resumen-row"><span class="resumen-label">Archivo</span><span class="resumen-valor" style="font-size:12px">${nombre}</span></div>
+        <div class="resumen-row"><span class="resumen-label">Copia local</span><span class="resumen-valor"><span class="badge badge-verde">✓ Descargada</span></span></div>
+      </div>
+      <button class="btn-primary btn-naranja" onclick="nuevaCharla()">+ Nueva charla</button>
+    `;
+  }
+
+  function mostrarResultadoLocal(nombre) {
+    document.getElementById('resultado-container').innerHTML = `
+      <div class="upload-status success">
+        <div class="upload-icon">💾</div>
+        <div class="upload-msg">Imagen guardada localmente</div>
+        <div class="upload-sub">${nombre}</div>
+      </div>
+      <div class="info-box">La imagen fue descargada en este dispositivo. Súbala manualmente a la carpeta de Drive de SENERCOM.</div>
+      <button class="btn-primary btn-naranja" onclick="nuevaCharla()">+ Nueva charla</button>
+      <button class="btn-secondary" onclick="mostrarResumen()">← Volver</button>
+    `;
+  }
+
+  function mostrarResumen() {
+    document.getElementById('resultado-container').style.display = 'none';
+    document.getElementById('resumen-container').style.display = 'block';
+  }
+
+  function nuevaCharla() {
+    // Resetear todo
+    asistentes = [];
+    tipoSeleccionado = '';
+    accessToken = null;
+    document.querySelectorAll('input[type=text], input[type=time], textarea').forEach(el => el.value = '');
+    document.querySelectorAll('.tipo-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.riesgo-item').forEach(el => el.classList.remove('checked'));
+    document.getElementById('otros_riesgos').value = '';
+    const hoy = new Date();
+    document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
+    const hh = String(hoy.getHours()).padStart(2,'0');
+    const mm = String(hoy.getMinutes()).padStart(2,'0');
+    document.getElementById('hora_inicio').value = `${hh}:${mm}`;
+    document.getElementById('hora_termino').value = '';
+    renderAsistentes();
+    document.getElementById('resultado-container').style.display = 'none';
+    document.getElementById('resumen-container').style.display = 'block';
+    limpiarStorage();
+    irAPaso(0);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  PERSISTENCIA LOCAL (para modo offline)
+  // ═══════════════════════════════════════════════════════
+  function guardarEnStorage() {
+    try {
+      const estado = {
+        obra: document.getElementById('obra').value,
+        fecha: document.getElementById('fecha').value,
+        area: document.getElementById('area').value,
+        hora_inicio: document.getElementById('hora_inicio').value,
+        hora_termino: document.getElementById('hora_termino').value,
+        relator: document.getElementById('relator').value,
+        cargo_relator: document.getElementById('cargo_relator').value,
+        curso: document.getElementById('curso').value,
+        temas: document.getElementById('temas').value,
+        tipo: tipoSeleccionado,
+        otros_riesgos: document.getElementById('otros_riesgos').value,
+        riesgosChecked: Array.from(document.querySelectorAll('.riesgo-item.checked')).map(el => el.querySelector('span').textContent),
+        asistentes: asistentes.map(a => ({ ...a, firmaTemp: undefined }))
+      };
+      localStorage.setItem('senercom_charla', JSON.stringify(estado));
+    } catch (e) {}
+  }
+
+  function cargarDesdeStorage() {
+    try {
+      const raw = localStorage.getItem('senercom_charla');
+      if (!raw) return;
+      const e = JSON.parse(raw);
+      if (e.obra) document.getElementById('obra').value = e.obra;
+      if (e.fecha) document.getElementById('fecha').value = e.fecha;
+      if (e.area) document.getElementById('area').value = e.area;
+      if (e.hora_inicio) document.getElementById('hora_inicio').value = e.hora_inicio;
+      if (e.hora_termino) document.getElementById('hora_termino').value = e.hora_termino;
+      if (e.relator) document.getElementById('relator').value = e.relator;
+      if (e.cargo_relator) document.getElementById('cargo_relator').value = e.cargo_relator;
+      if (e.curso) document.getElementById('curso').value = e.curso;
+      if (e.temas) document.getElementById('temas').value = e.temas;
+      if (e.tipo) {
+        tipoSeleccionado = e.tipo;
+        document.querySelectorAll('.tipo-item').forEach(el => {
+          if (el.textContent.trim().includes(e.tipo)) el.classList.add('selected');
+        });
+      }
+      if (e.otros_riesgos) document.getElementById('otros_riesgos').value = e.otros_riesgos;
+      if (e.riesgosChecked && e.riesgosChecked.length) {
+        setTimeout(() => {
+          document.querySelectorAll('.riesgo-item').forEach(el => {
+            if (e.riesgosChecked.includes(el.querySelector('span').textContent)) el.classList.add('checked');
+          });
+        }, 100);
+      }
+      if (e.asistentes && e.asistentes.length) {
+        asistentes = e.asistentes;
+        renderAsistentes();
+      }
+    } catch (e) {}
+  }
+
+  function limpiarStorage() {
+    try { localStorage.removeItem('senercom_charla'); } catch (e) {}
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  TOAST
+  // ═══════════════════════════════════════════════════════
+  let toastTimer;
+  function toast(msg, tipo = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = `show ${tipo}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  SERVICE WORKER (PWA offline)
+  // ═══════════════════════════════════════════════════════
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  </script>
+</body>
+</html>
