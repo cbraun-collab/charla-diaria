@@ -898,18 +898,46 @@
   // ═══════════════════════════════════════════════════════
   //  GENERAR IMAGEN DEL REGISTRO
   // ═══════════════════════════════════════════════════════
+
+  // Carga una imagen desde dataURL y retorna una Promise<HTMLImageElement>
+  function cargarImagen(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Error cargando imagen'));
+      img.src = src;
+    });
+  }
+
   async function generarImagen() {
-    const canvas = document.createElement('canvas');
     const W = 1240, MARGEN = 40;
+
+    // ── Pre-cargar TODAS las firmas antes de tocar el canvas ──
+    const firmasCache = {};
+    for (const a of asistentes) {
+      if (a.firma) {
+        try {
+          firmasCache[a.id] = await cargarImagen(a.firma);
+        } catch (e) {
+          console.warn('No se pudo cargar firma de', a.nombre);
+        }
+      }
+    }
+
+    // ── Crear canvas con fondo blanco explícito ──
+    const canvas = document.createElement('canvas');
     canvas.width = W;
+
+    const riesgos = getRiesgosSeleccionados();
+    const colsR = 3;
+    const rowsR = Math.ceil(RIESGOS.length / colsR);
+    const filasTotal = Math.max(asistentes.length, 8);
+    const alturaEstimada = 120 + 210 + 40 + (rowsR * 22) + 50 + 60 + (filasTotal * 56) + 90;
+    canvas.height = alturaEstimada;
 
     const ctx = canvas.getContext('2d');
 
-    // Calcular altura necesaria
-    const filasAsistentes = Math.max(asistentes.length, 5);
-    const alturaBase = 200 + 160 + 260 + (filasAsistentes * 50) + 200;
-    canvas.height = alturaBase;
-
+    // Fondo blanco explícito — evita canvas transparente (negro al exportar)
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, canvas.height);
 
@@ -924,9 +952,8 @@
     ctx.font = 'bold 28px Arial';
     ctx.fillText('REGISTRO DE TRABAJO SEGURO', MARGEN, 42);
     ctx.font = '16px Arial';
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.fillText('SENERCOM LIMITADA — Art. N°21 Decreto N°40 Ley 16.744', MARGEN, 72);
-    // Logo círculo
     ctx.fillStyle = '#CF4520';
     ctx.beginPath();
     ctx.arc(W - 60, 45, 30, 0, Math.PI * 2);
@@ -937,99 +964,90 @@
     ctx.fillText('SNR', W - 60, 51);
     ctx.textAlign = 'left';
 
-    y = 115;
+    y = 108;
 
-    // ── Función helper: cuadro de campo ──
+    // ── Helper: cuadro de campo ──
     const campo = (label, valor, x, w, cy, h = 36) => {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(x, cy, w, h);
       ctx.strokeStyle = '#d0d7db';
       ctx.lineWidth = 1;
       ctx.strokeRect(x, cy, w, h);
-      ctx.fillStyle = '#f5f7f8';
-      ctx.fillRect(x, cy, w, 16);
+      ctx.fillStyle = '#f0f4f5';
+      ctx.fillRect(x, cy, w, 15);
       ctx.fillStyle = '#4a6068';
       ctx.font = '10px Arial';
       ctx.fillText(label.toUpperCase(), x + 6, cy + 11);
       ctx.fillStyle = '#1a2426';
       ctx.font = '13px Arial';
-      ctx.fillText(valor || '', x + 6, cy + 29);
+      ctx.fillText((valor || '').substring(0, Math.floor(w / 7)), x + 6, cy + h - 8);
     };
 
     const fecha = document.getElementById('fecha').value;
     const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL') : '';
-
-    // Fila 1
     const col1W = W * 0.5 - MARGEN;
-    const col2W = W * 0.25 - 5;
-    const col3W = W * 0.25 - MARGEN + 5;
+    const col2W = Math.floor((W - MARGEN * 2) / 4);
+
     campo('Obra o Faena', document.getElementById('obra').value, MARGEN, W - MARGEN * 2, y, 40);
     y += 40;
     campo('Fecha', fechaFmt, MARGEN, col2W, y);
     campo('Hora inicio', document.getElementById('hora_inicio').value, MARGEN + col2W, col2W, y);
-    campo('Hora término', document.getElementById('hora_termino').value, MARGEN + col2W * 2, W - MARGEN * 2 - col2W * 2, y);
+    campo('Hora término', document.getElementById('hora_termino').value, MARGEN + col2W * 2, col2W, y);
+    campo('Área de trabajo', document.getElementById('area').value, MARGEN + col2W * 3, W - MARGEN * 2 - col2W * 3, y);
     y += 36;
-    campo('Área de trabajo', document.getElementById('area').value, MARGEN, col1W, y);
-    campo('Relator', document.getElementById('relator').value, MARGEN + col1W, W - MARGEN * 2 - col1W, y);
+    campo('Relator', document.getElementById('relator').value, MARGEN, col1W, y);
+    campo('Cargo', document.getElementById('cargo_relator').value, MARGEN + col1W, col2W, y);
+    campo('Tipo de charla', tipoSeleccionado, MARGEN + col1W + col2W, W - MARGEN * 2 - col1W - col2W, y);
     y += 36;
-    campo('Cargo relator', document.getElementById('cargo_relator').value, MARGEN, col1W, y);
-    campo('Tipo de charla', tipoSeleccionado, MARGEN + col1W, W - MARGEN * 2 - col1W, y);
-    y += 36;
-    campo('Temas / Observaciones', document.getElementById('temas').value, MARGEN, W - MARGEN * 2, y, 50);
-    y += 50;
+    campo('Temas / Observaciones', document.getElementById('temas').value, MARGEN, W - MARGEN * 2, y, 48);
+    y += 48;
 
-    // ── Sección riesgos ──
+    // ── Riesgos ──
     y += 10;
     ctx.fillStyle = '#003B49';
     ctx.fillRect(MARGEN, y, W - MARGEN * 2, 24);
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 12px Arial';
     ctx.fillText('RIESGOS IDENTIFICADOS', MARGEN + 8, y + 16);
-    y += 28;
+    y += 24;
 
-    const riesgos = getRiesgosSeleccionados();
-    const colsR = 3;
     const rW = (W - MARGEN * 2) / colsR;
-    const rowsR = Math.ceil(RIESGOS.length / colsR);
-
     for (let i = 0; i < RIESGOS.length; i++) {
       const row = Math.floor(i / colsR);
       const col = i % colsR;
       const rx = MARGEN + col * rW;
       const ry = y + row * 22;
       const checked = riesgos.includes(RIESGOS[i]);
+      ctx.fillStyle = checked ? '#e6f0f3' : '#ffffff';
+      ctx.fillRect(rx, ry, rW, 22);
       ctx.strokeStyle = '#d0d7db';
       ctx.lineWidth = 0.5;
       ctx.strokeRect(rx, ry, rW, 22);
-      if (checked) {
-        ctx.fillStyle = '#e6f0f3';
-        ctx.fillRect(rx, ry, rW, 22);
-      }
-      // Checkbox
-      ctx.strokeStyle = checked ? '#003B49' : '#aaa';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(rx + 5, ry + 5, 12, 12);
       if (checked) {
         ctx.fillStyle = '#003B49';
         ctx.fillRect(rx + 5, ry + 5, 12, 12);
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 9px Arial';
         ctx.fillText('✓', rx + 7, ry + 14);
+      } else {
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(rx + 5, ry + 5, 12, 12);
       }
       ctx.fillStyle = '#1a2426';
       ctx.font = '10px Arial';
       ctx.fillText(RIESGOS[i], rx + 22, ry + 14);
     }
+    y += rowsR * 22 + 8;
 
-    y += rowsR * 22 + 12;
-
-    // Otros riesgos
     const otros = document.getElementById('otros_riesgos').value.trim();
     if (otros) {
-      campo('Otros riesgos', otros, MARGEN, W - MARGEN * 2, y, 30);
-      y += 32;
+      campo('Otros riesgos', otros, MARGEN, W - MARGEN * 2, y, 28);
+      y += 30;
     }
 
     // ── Tabla asistentes ──
-    y += 10;
+    y += 12;
     ctx.fillStyle = '#003B49';
     ctx.fillRect(MARGEN, y, W - MARGEN * 2, 28);
     ctx.fillStyle = '#ffffff';
@@ -1037,82 +1055,76 @@
     ctx.fillText('REGISTRO DE ASISTENTES', MARGEN + 8, y + 19);
     y += 28;
 
-    const cols = [40, 280, 130, 160, 0]; // anchos: Nº, Nombre, RUT, Especialidad, Firma
-    const firmaW = W - MARGEN * 2 - cols.slice(0,4).reduce((a,b) => a+b, 0);
+    const cols = [40, 290, 140, 160, 0];
+    const firmaW = W - MARGEN * 2 - cols.slice(0, 4).reduce((a, b) => a + b, 0);
     cols[4] = firmaW;
     const headers = ['N°', 'Nombre completo', 'RUT', 'Especialidad', 'Firma'];
 
-    // Encabezado tabla
     let xh = MARGEN;
     headers.forEach((h, i) => {
       ctx.fillStyle = '#005f70';
-      ctx.fillRect(xh, y, cols[i], 28);
+      ctx.fillRect(xh, y, cols[i], 26);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 11px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(h, xh + cols[i] / 2, y + 18);
+      ctx.fillText(h, xh + cols[i] / 2, y + 17);
       xh += cols[i];
     });
     ctx.textAlign = 'left';
-    y += 28;
+    y += 26;
 
-    // Filas de asistentes
-    const filasTotal = Math.max(asistentes.length, 8);
+    const rowH = 56;
     for (let i = 0; i < filasTotal; i++) {
       const a = asistentes[i];
-      const rowH = 52;
       const fy = y + i * rowH;
-      let xc = MARGEN;
       const bg = i % 2 === 0 ? '#ffffff' : '#f8fafb';
       ctx.fillStyle = bg;
       ctx.fillRect(MARGEN, fy, W - MARGEN * 2, rowH);
 
+      let xc = MARGEN;
       cols.forEach((w, ci) => {
         ctx.strokeStyle = '#d0d7db';
         ctx.lineWidth = 0.5;
         ctx.strokeRect(xc, fy, w, rowH);
-
-        ctx.fillStyle = '#1a2426';
         if (ci === 0) {
+          ctx.fillStyle = '#003B49';
           ctx.font = 'bold 14px Arial';
           ctx.textAlign = 'center';
           ctx.fillText(i + 1, xc + w / 2, fy + rowH / 2 + 5);
           ctx.textAlign = 'left';
         } else if (a) {
-          ctx.font = '12px Arial';
-          const vals = [a.nombre, a.rut, a.especialidad, ''];
-          if (ci < 4) ctx.fillText(vals[ci - 1] || '', xc + 6, fy + 22);
-          // Firma
-          if (ci === 4 && a.firma) {
-            const img = new Image();
-            img.src = a.firma;
-            ctx.drawImage(img, xc + 4, fy + 4, w - 8, rowH - 8);
+          ctx.fillStyle = '#1a2426';
+          ctx.font = '13px Arial';
+          if (ci === 1) ctx.fillText(a.nombre || '', xc + 6, fy + 22);
+          if (ci === 2) ctx.fillText(a.rut || '', xc + 6, fy + 22);
+          if (ci === 3) ctx.fillText(a.especialidad || '', xc + 6, fy + 22);
+          // ── Firma: usar imagen pre-cargada ──
+          if (ci === 4 && firmasCache[a.id]) {
+            ctx.drawImage(firmasCache[a.id], xc + 4, fy + 4, w - 8, rowH - 8);
           }
         }
         xc += w;
       });
     }
 
-    y += filasTotal * 52;
+    y += filasTotal * rowH;
 
     // ── Pie ──
-    y += 16;
+    y += 14;
     ctx.fillStyle = '#f5f7f8';
-    ctx.fillRect(MARGEN, y, W - MARGEN * 2, 50);
+    ctx.fillRect(MARGEN, y, W - MARGEN * 2, 52);
     ctx.strokeStyle = '#d0d7db';
     ctx.lineWidth = 1;
-    ctx.strokeRect(MARGEN, y, W - MARGEN * 2, 50);
+    ctx.strokeRect(MARGEN, y, W - MARGEN * 2, 52);
     ctx.fillStyle = '#4a6068';
     ctx.font = 'italic 11px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Los firmantes en este registro declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.', W / 2, y + 20);
+    ctx.fillText('Los firmantes declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.', W / 2, y + 22);
     ctx.fillStyle = '#003B49';
     ctx.font = '10px Arial';
-    ctx.fillText(`Generado: ${new Date().toLocaleString('es-CL')} | SENERCOM Limitada`, W / 2, y + 38);
+    ctx.fillText(`Generado: ${new Date().toLocaleString('es-CL')} | SENERCOM Limitada`, W / 2, y + 40);
     ctx.textAlign = 'left';
 
-    canvas.height = y + 66;
-    // Redibujar fondo completo y repetir... en lugar de eso retornamos tal cual
     return canvas;
   }
 
@@ -1384,4 +1396,3 @@
   </script>
 </body>
 </html>
-
