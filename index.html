@@ -391,7 +391,14 @@
   <div id="offline-badge">📵 Sin conexión — el registro se guardará para sincronizar luego</div>
 
   <header class="app-header">
-    <div class="logo-circle">SNR</div>
+    <div id="logo-header" style="width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+      <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="21" cy="21" r="21" fill="#CF4520"/>
+        <rect x="6" y="19" width="30" height="1" fill="rgba(255,255,255,0.4)"/>
+        <text x="21" y="16" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="7.5" fill="white" letter-spacing="0.5">SENER</text>
+        <text x="21" y="27" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="7.5" fill="white" letter-spacing="0.5">COM</text>
+      </svg>
+    </div>
     <div style="flex:1">
       <div class="header-title">Charla Diaria</div>
       <div class="header-sub">SENERCOM Limitada</div>
@@ -1299,13 +1306,21 @@
     document.getElementById('resultado-container').style.display = 'block';
     document.getElementById('resumen-container').style.display = 'none';
     const iconos = { loading: '⏳', success: '✅', error: '❌', pending: '⚠️' };
+    const botonEscape = (tipo === 'error' || tipo === 'loading') ? `
+      <button class="btn-secondary" style="margin-top:14px;" onclick="mostrarResumen()">← Volver</button>` : '';
     document.getElementById('resultado-container').innerHTML = `
       <div class="upload-status ${tipo}">
         <div class="upload-icon">${iconos[tipo]}</div>
         <div class="upload-msg">${msg}</div>
         <div class="upload-sub">${sub}</div>
       </div>
+      ${botonEscape}
     `;
+  }
+
+  function mostrarResumen() {
+    document.getElementById('resultado-container').style.display = 'none';
+    document.getElementById('resumen-container').style.display = 'block';
   }
 
   function mostrarResultadoExito(nombre, fileId) {
@@ -1325,16 +1340,88 @@
   }
 
   function mostrarResultadoLocal(nombre) {
+    document.getElementById('resultado-container').style.display = 'block';
+    document.getElementById('resumen-container').style.display = 'none';
     document.getElementById('resultado-container').innerHTML = `
       <div class="upload-status success">
         <div class="upload-icon">📄</div>
         <div class="upload-msg">PDF guardado correctamente</div>
         <div class="upload-sub">${nombre}</div>
       </div>
-      <div class="info-box">El PDF fue descargado en este dispositivo. Ábralo con cualquier visor de PDF para verificarlo.</div>
-      <button class="btn-primary btn-naranja" onclick="nuevaCharla()">+ Nueva charla</button>
-      <button class="btn-secondary" onclick="mostrarResumen()">← Volver</button>
+      <div class="info-box" style="margin-top:12px;">Puede agregar más trabajadores al registro o iniciar una nueva charla.</div>
+      <button class="btn-primary" style="background:var(--azul-claro);margin-top:8px;" onclick="volverAFirmas()">✍️ Agregar más trabajadores</button>
+      <button class="btn-primary btn-naranja" style="margin-top:8px;" onclick="nuevaCharla()">+ Nueva charla</button>
     `;
+  }
+
+  function volverAFirmas() {
+    document.getElementById('resultado-container').style.display = 'none';
+    document.getElementById('resumen-container').style.display = 'block';
+    irAPaso(2);
+    window.scrollTo(0, 0);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  PERSISTENCIA LOCAL (para modo offline)
+  // ═══════════════════════════════════════════════════════
+  function guardarEnStorage() {
+    try {
+      const estado = {
+        obra: document.getElementById('obra').value,
+        fecha: document.getElementById('fecha').value,
+        area: document.getElementById('area').value,
+        hora_inicio: document.getElementById('hora_inicio').value,
+        hora_termino: document.getElementById('hora_termino').value,
+        relator: document.getElementById('relator').value,
+        cargo_relator: document.getElementById('cargo_relator').value,
+        curso: document.getElementById('curso').value,
+        temas: document.getElementById('temas').value,
+        tipo: tipoSeleccionado,
+        otros_riesgos: document.getElementById('otros_riesgos').value,
+        riesgosChecked: Array.from(document.querySelectorAll('.riesgo-item.checked')).map(el => el.querySelector('span').textContent),
+        asistentes: asistentes.map(a => ({ ...a, firmaTemp: undefined }))
+      };
+      localStorage.setItem('senercom_charla', JSON.stringify(estado));
+    } catch(e) {}
+  }
+
+  function cargarDesdeStorage() {
+    try {
+      const raw = localStorage.getItem('senercom_charla');
+      if (!raw) return;
+      const e = JSON.parse(raw);
+      if (e.obra) document.getElementById('obra').value = e.obra;
+      if (e.fecha) document.getElementById('fecha').value = e.fecha;
+      if (e.area) document.getElementById('area').value = e.area;
+      if (e.hora_inicio) document.getElementById('hora_inicio').value = e.hora_inicio;
+      if (e.hora_termino) document.getElementById('hora_termino').value = e.hora_termino;
+      if (e.relator) document.getElementById('relator').value = e.relator;
+      if (e.cargo_relator) document.getElementById('cargo_relator').value = e.cargo_relator;
+      if (e.curso) document.getElementById('curso').value = e.curso;
+      if (e.temas) document.getElementById('temas').value = e.temas;
+      if (e.tipo) {
+        tipoSeleccionado = e.tipo;
+        document.querySelectorAll('.tipo-item').forEach(el => {
+          if (el.textContent.trim().includes(e.tipo)) el.classList.add('selected');
+        });
+      }
+      if (e.otros_riesgos) document.getElementById('otros_riesgos').value = e.otros_riesgos;
+      if (e.riesgosChecked && e.riesgosChecked.length) {
+        setTimeout(() => {
+          document.querySelectorAll('.riesgo-item').forEach(el => {
+            if (e.riesgosChecked.includes(el.querySelector('span').textContent)) el.classList.add('checked');
+          });
+        }, 100);
+      }
+      if (e.asistentes && e.asistentes.length) {
+        asistentes = e.asistentes;
+        renderAsistentes();
+      }
+    } catch(e) {}
+  }
+
+  function limpiarStorage() {
+    try { localStorage.removeItem('senercom_charla'); } catch(e) {}
   }
 
   // ═══════════════════════════════════════════════════════
