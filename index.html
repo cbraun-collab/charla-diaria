@@ -15,6 +15,8 @@
 
   <!-- Google API client -->
   <script src="https://apis.google.com/js/api.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <!-- jsPDF para generación de PDF en el navegador -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -548,7 +550,7 @@
 
           <div class="field">
             <label>ID de carpeta Google Drive</label>
-            <input type="text" id="drive-folder-id" class="drive-input" placeholder="1UuXpmOifYejccYgrErGVFgPy-CJV95MO" value="1UuXpmOifYejccYgrErGVFgPy-CJV95MO">
+            <input type="text" id="drive-folder-id" class="drive-input" placeholder="18er4JOP928529XE4hazxMNBuvjf6b63_" value="18er4JOP928529XE4hazxMNBuvjf6b63_">
           </div>
 
           <div id="auth-status" style="margin-bottom:12px; display:none;"></div>
@@ -1204,7 +1206,7 @@
   //  GOOGLE DRIVE
   // ═══════════════════════════════════════════════════════
   function iniciarSubida() {
-    if (GOOGLE_CLIENT_ID === '72369192874-rgv4vqjl243p39fv0dntkl5a4m13s8k6.apps.googleusercontent.com') {
+    if (GOOGLE_CLIENT_ID === 'TU_GOOGLE_CLIENT_ID_AQUI' || !GOOGLE_CLIENT_ID) {
       mostrarInstruccionesConfig();
       return;
     }
