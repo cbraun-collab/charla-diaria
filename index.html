@@ -1365,34 +1365,53 @@
   //  NUEVA CHARLA / RESETEAR
   // ═══════════════════════════════════════════════════════
   function nuevaCharla() {
-    asistentes = [];
-    tipoSeleccionado = '';
-    accessToken = null;
+    try {
+      // 1. Resetear variables globales
+      asistentes = [];
+      tipoSeleccionado = '';
+      accessToken = null;
 
-    ['obra','area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
+      // 2. Limpiar todos los campos de texto
+      ['obra','area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
 
-    const hoy = new Date();
-    document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
-    const hh = String(hoy.getHours()).padStart(2,'0');
-    const mm = String(hoy.getMinutes()).padStart(2,'0');
-    document.getElementById('hora_inicio').value = hh + ':' + mm;
-    document.getElementById('hora_termino').value = '';
+      // 3. Fecha y hora actuales
+      const hoy = new Date();
+      const fechaEl = document.getElementById('fecha');
+      if (fechaEl) fechaEl.value = hoy.toISOString().split('T')[0];
+      const hh = String(hoy.getHours()).padStart(2,'0');
+      const mm = String(hoy.getMinutes()).padStart(2,'0');
+      const hiEl = document.getElementById('hora_inicio');
+      const htEl = document.getElementById('hora_termino');
+      if (hiEl) hiEl.value = hh + ':' + mm;
+      if (htEl) htEl.value = '';
 
-    document.querySelectorAll('.tipo-item').forEach(el => el.classList.remove('selected'));
-    document.querySelectorAll('.riesgo-item').forEach(el => el.classList.remove('checked'));
+      // 4. Limpiar selecciones de tipo y riesgos
+      document.querySelectorAll('.tipo-item').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('.riesgo-item').forEach(el => el.classList.remove('checked'));
 
-    renderAsistentes();
+      // 5. Limpiar lista de asistentes
+      renderAsistentes();
 
-    document.getElementById('resultado-container').style.display = 'none';
-    document.getElementById('resumen-container').style.display = 'block';
+      // 6. Mostrar pantalla principal y ocultar resultado
+      const resCont = document.getElementById('resultado-container');
+      const resCont2 = document.getElementById('resumen-container');
+      if (resCont) resCont.style.display = 'none';
+      if (resCont2) resCont2.style.display = 'block';
 
-    limpiarStorage();
-    irAPaso(0);
-    window.scrollTo(0, 0);
-    toast('✓ Formulario limpio — nueva charla lista', 'success');
+      // 7. Limpiar storage e ir al paso 0
+      limpiarStorage();
+      irAPaso(0);
+      window.scrollTo(0, 0);
+      toast('✓ Nueva charla lista', 'success');
+    } catch(err) {
+      console.error('Error en nuevaCharla:', err);
+      // Forzar recarga como último recurso
+      limpiarStorage();
+      window.location.reload();
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1462,21 +1481,24 @@
   //  FORZAR ACTUALIZACIÓN / LIMPIAR CACHÉ
   // ═══════════════════════════════════════════════════════
   async function forzarActualizacion() {
-    toast('Limpiando caché...', '');
     try {
+      // Limpiar caché del service worker
       if ('caches' in window) {
         const keys = await caches.keys();
         await Promise.all(keys.map(k => caches.delete(k)));
       }
+      // Desregistrar service workers
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         await Promise.all(regs.map(r => r.unregister()));
       }
-      toast('✓ Caché limpio — recargando...', 'success');
-      setTimeout(() => window.location.reload(true), 1000);
+      // Limpiar localStorage
+      limpiarStorage();
     } catch(e) {
-      window.location.reload(true);
+      console.warn('Error limpiando caché:', e);
     }
+    // Recargar siempre, sin depender de toast
+    window.location.reload(true);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -1484,6 +1506,19 @@
   // ═══════════════════════════════════════════════════════
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  TOAST (notificación flotante)
+  // ═══════════════════════════════════════════════════════
+  let _toastTimer = null;
+  function toast(msg, tipo) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'show' + (tipo ? ' ' + tipo : '');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => { el.className = ''; }, 3000);
   }
   </script>
 </body>
