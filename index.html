@@ -1204,7 +1204,7 @@
   //  GOOGLE DRIVE
   // ═══════════════════════════════════════════════════════
   function iniciarSubida() {
-    if (GOOGLE_CLIENT_ID === '72369192874-rgv4vqjl243p39fv0dntkl5a4m13s8k6.apps.googleusercontent.com') {
+    if (GOOGLE_CLIENT_ID === '975837081293-6ttsdcd3uvbi62coi3sk0ku3a4r39u2c.apps.googleusercontent.com') {
       mostrarInstruccionesConfig();
       return;
     }
@@ -1359,6 +1359,40 @@
     document.getElementById('resumen-container').style.display = 'block';
     irAPaso(2);
     window.scrollTo(0, 0);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  NUEVA CHARLA / RESETEAR
+  // ═══════════════════════════════════════════════════════
+  function nuevaCharla() {
+    asistentes = [];
+    tipoSeleccionado = '';
+    accessToken = null;
+
+    ['obra','area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    const hoy = new Date();
+    document.getElementById('fecha').value = hoy.toISOString().split('T')[0];
+    const hh = String(hoy.getHours()).padStart(2,'0');
+    const mm = String(hoy.getMinutes()).padStart(2,'0');
+    document.getElementById('hora_inicio').value = hh + ':' + mm;
+    document.getElementById('hora_termino').value = '';
+
+    document.querySelectorAll('.tipo-item').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.riesgo-item').forEach(el => el.classList.remove('checked'));
+
+    renderAsistentes();
+
+    document.getElementById('resultado-container').style.display = 'none';
+    document.getElementById('resumen-container').style.display = 'block';
+
+    limpiarStorage();
+    irAPaso(0);
+    window.scrollTo(0, 0);
+    toast('✓ Formulario limpio — nueva charla lista', 'success');
   }
 
   // ═══════════════════════════════════════════════════════
