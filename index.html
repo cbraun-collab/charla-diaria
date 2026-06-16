@@ -976,6 +976,42 @@
       doc.text(val, x + 1.5, cy + h - 2.5);
     };
 
+    // ── Celda de texto MULTILÍNEA: crece según la cantidad de texto, sin cortar nada ──
+    // Retorna la altura total usada, para que el llamador desplace el resto del documento
+    const celdaMultilinea = (label, valor, x, w, cy, fontSize = 8.5, minH = 14) => {
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', 'normal');
+      const texto = valor || '';
+      const lineasTexto = texto ? doc.splitTextToSize(texto, w - 4) : [''];
+      const altoLinea = fontSize * 0.42; // mm aproximados por línea a este tamaño
+      const altoTexto = lineasTexto.length * altoLinea;
+      const h = Math.max(minH, altoTexto + 7); // 7mm para el label + márgenes
+
+      // Fondo y borde de la celda completa (ya con la altura correcta)
+      doc.setFillColor(248, 250, 251);
+      doc.rect(x, cy, w, h, 'F');
+      doc.setDrawColor(...BORDE);
+      doc.setLineWidth(0.2);
+      doc.rect(x, cy, w, h, 'S');
+      // Banda del label
+      doc.setFillColor(230, 238, 241);
+      doc.rect(x, cy, w, 4, 'F');
+      doc.setFontSize(6);
+      doc.setTextColor(...TEXTSEC);
+      doc.setFont('helvetica', 'bold');
+      doc.text(label.toUpperCase(), x + 1.5, cy + 3);
+      // Texto completo, línea por línea, SIN truncar
+      doc.setFontSize(fontSize);
+      doc.setTextColor(...TEXTO);
+      doc.setFont('helvetica', 'normal');
+      let ly = cy + 7;
+      lineasTexto.forEach(linea => {
+        doc.text(linea, x + 1.5, ly);
+        ly += altoLinea;
+      });
+      return h; // alto real usado, para desplazar lo que sigue
+    };
+
     // ══════════════════════════════════════════
     // CABECERA
     // ══════════════════════════════════════════
@@ -1039,9 +1075,16 @@
     celda('Tipo de charla', tipoSeleccionado, ML + c3a + c3b, c3c, y);
     y += 11;
 
-    // Fila 4: Temas (más alto)
-    celda('Temas tratados / Observaciones', document.getElementById('temas').value, ML, W, y, 14);
-    y += 15;
+    // Fila 4: Temas — MULTILÍNEA, crece según el texto sin límite ni recorte
+    const altoTemas = celdaMultilinea('Temas tratados / Observaciones', document.getElementById('temas').value, ML, W, y, 8.5, 14);
+    y += altoTemas + 1;
+
+    // Si el texto de Temas fue muy largo y queda poco espacio, saltar a página nueva
+    // antes de la sección de Riesgos para no cortarla a la mitad
+    if (y > PH - 60) {
+      doc.addPage();
+      y = 15;
+    }
 
     // ══════════════════════════════════════════
     // SECCIÓN: RIESGOS IDENTIFICADOS
