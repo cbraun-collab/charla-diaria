@@ -12,14 +12,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Charla Diaria">
- 
-  <!-- Google API client -->
+
   <script src="https://apis.google.com/js/api.js"></script>
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- jsPDF para generación de PDF en el navegador -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
- 
+
   <style>
     :root {
       --azul: #003B49;
@@ -35,7 +32,7 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--fondo); color: var(--texto); }
- 
+
     /* ── Encabezado ── */
     .app-header {
       background: var(--azul);
@@ -46,25 +43,20 @@
       gap: 12px;
       position: sticky;
       top: 0;
-      z-index: 100;
-    }
-    .logo-circle {
-      width: 38px; height: 38px;
-      background: var(--naranja);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 13px; color: white; flex-shrink: 0;
-      letter-spacing: 0.5px;
+      z-index: 200;
     }
     .header-title { font-size: 15px; font-weight: 600; line-height: 1.2; }
     .header-sub { font-size: 11px; opacity: 0.75; }
- 
+
     /* ── Navegación por pasos ── */
     .stepper {
       display: flex;
       background: var(--azul-claro);
       overflow-x: auto;
       scrollbar-width: none;
+      position: sticky;
+      top: 66px;
+      z-index: 190;
     }
     .stepper::-webkit-scrollbar { display: none; }
     .step-btn {
@@ -84,14 +76,14 @@
     .step-btn.active { color: white; border-bottom-color: var(--naranja); }
     .step-btn.done { color: rgba(255,255,255,0.85); }
     .step-icon { font-size: 16px; }
- 
+
     /* ── Contenido principal ── */
     .main { padding: 16px; max-width: 900px; margin: 0 auto; }
- 
+
     /* ── Secciones ── */
     .section { display: none; }
     .section.visible { display: block; }
- 
+
     /* ── Tarjeta formulario ── */
     .card {
       background: var(--blanco);
@@ -112,7 +104,7 @@
       display: flex; align-items: center; gap: 6px;
     }
     .card-title::before { content: attr(data-icon); font-size: 16px; }
- 
+
     /* ── Campos ── */
     .field { margin-bottom: 12px; }
     .field label { display: block; font-size: 12px; font-weight: 600; color: var(--texto-sec); margin-bottom: 4px; }
@@ -133,17 +125,11 @@
     }
     .field textarea { resize: vertical; min-height: 80px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
- 
+
     /* ── Checkboxes de riesgos ── */
-    .riesgos-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
+    .riesgos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .riesgo-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
       padding: 7px 10px;
       background: var(--fondo);
       border-radius: 7px;
@@ -166,12 +152,9 @@
       background: white;
       transition: all 0.15s;
     }
-    .riesgo-item.checked .riesgo-check {
-      background: var(--azul);
-      border-color: var(--azul);
-    }
+    .riesgo-item.checked .riesgo-check { background: var(--azul); border-color: var(--azul); }
     .riesgo-item.checked .riesgo-check::after { content: '✓'; color: white; font-size: 11px; font-weight: 700; }
- 
+
     /* ── Tipos de charla ── */
     .tipo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .tipo-item {
@@ -188,7 +171,7 @@
     .tipo-item.selected { background: #fff3ee; border-color: var(--naranja); color: var(--naranja); font-weight: 600; }
     .tipo-radio { width: 18px; height: 18px; border: 2px solid var(--borde); border-radius: 50%; flex-shrink: 0; transition: all 0.15s; background: white; }
     .tipo-item.selected .tipo-radio { border-color: var(--naranja); background: var(--naranja); box-shadow: inset 0 0 0 3px white; }
- 
+
     /* ── Lista de asistentes ── */
     .asistente-card {
       background: var(--fondo);
@@ -197,22 +180,14 @@
       margin-bottom: 10px;
       overflow: hidden;
     }
-    .asistente-header {
-      display: flex;
-      align-items: center;
-      padding: 12px 14px;
-      gap: 12px;
-      cursor: pointer;
-    }
+    .asistente-header { display: flex; align-items: center; padding: 12px 14px; gap: 12px; cursor: pointer; }
     .asistente-num {
       width: 28px; height: 28px;
       background: var(--azul);
       color: white;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
     }
     .asistente-num.firmado { background: var(--verde); }
     .asistente-info { flex: 1; }
@@ -223,7 +198,7 @@
     .asistente-estado.pendiente { color: var(--naranja); }
     .asistente-body { padding: 0 14px 14px; }
     .asistente-body.hidden { display: none; }
- 
+
     /* ── Canvas de firma ── */
     .firma-container {
       background: white;
@@ -234,108 +209,79 @@
       margin-top: 8px;
     }
     .firma-container canvas {
-      display: block;
-      width: 100%;
-      height: 140px;
-      border-radius: 6px;
-      cursor: crosshair;
-      touch-action: none;
+      display: block; width: 100%; height: 140px;
+      border-radius: 6px; cursor: crosshair; touch-action: none;
     }
     .firma-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 13px;
-      color: #bbb;
-      pointer-events: none;
-      text-align: center;
-      transition: opacity 0.2s;
+      font-size: 13px; color: #bbb;
+      pointer-events: none; text-align: center; transition: opacity 0.2s;
     }
     .firma-actions { display: flex; gap: 8px; margin-top: 8px; }
     .btn-sm {
-      padding: 8px 14px;
-      border-radius: 7px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: all 0.15s;
+      padding: 8px 14px; border-radius: 7px; font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer; transition: all 0.15s;
     }
     .btn-sm:active { transform: scale(0.97); }
     .btn-limpiar { background: var(--fondo); color: var(--texto-sec); border: 1.5px solid var(--borde); }
     .btn-confirmar { background: var(--azul); color: white; flex: 1; }
     .btn-confirmar:disabled { background: #9bb0b6; cursor: not-allowed; }
- 
+
     /* ── Botón agregar asistente ── */
     .btn-agregar {
-      width: 100%;
-      padding: 13px;
+      width: 100%; padding: 13px;
       background: var(--fondo);
       border: 2px dashed var(--borde);
       border-radius: 10px;
       color: var(--azul);
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 14px; font-weight: 600;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 6px;
       transition: all 0.15s;
     }
     .btn-agregar:hover { background: #e8eff2; border-color: var(--azul); }
- 
+
     /* ── Botones de acción principal ── */
     .btn-primary {
-      width: 100%;
-      padding: 15px;
+      width: 100%; padding: 15px;
       background: var(--azul);
-      color: white;
-      border: none;
+      color: white; border: none;
       border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 16px; font-weight: 600;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      transition: all 0.15s;
-      margin-top: 8px;
+      transition: all 0.15s; margin-top: 8px;
     }
     .btn-primary:active { transform: scale(0.98); background: var(--azul-claro); }
     .btn-primary:disabled { background: #9bb0b6; cursor: not-allowed; }
     .btn-naranja { background: var(--naranja); }
     .btn-naranja:active { background: #b03918; }
     .btn-secondary {
-      width: 100%;
-      padding: 13px;
+      width: 100%; padding: 13px;
       background: transparent;
       color: var(--azul);
       border: 2px solid var(--azul);
       border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: all 0.15s;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: all 0.15s;
     }
     .btn-secondary:active { background: #e6f0f3; }
- 
+
     /* ── Vista previa / resumen ── */
     .resumen-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--fondo); font-size: 14px; }
     .resumen-row:last-child { border-bottom: none; }
     .resumen-label { color: var(--texto-sec); }
     .resumen-valor { font-weight: 600; color: var(--texto); text-align: right; max-width: 60%; }
- 
+
     /* ── Badge de estado ── */
     .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .badge-verde { background: #e8f5e9; color: var(--verde); }
     .badge-naranja { background: #fff3ee; color: var(--naranja); }
     .badge-gris { background: #f0f0f0; color: #666; }
- 
+
     /* ── Estado de subida ── */
-    .upload-status {
-      padding: 20px;
-      text-align: center;
-      border-radius: 12px;
-      margin-bottom: 14px;
-    }
+    .upload-status { padding: 20px; text-align: center; border-radius: 12px; margin-bottom: 14px; }
     .upload-icon { font-size: 48px; margin-bottom: 10px; }
     .upload-msg { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
     .upload-sub { font-size: 13px; color: var(--texto-sec); }
@@ -343,23 +289,19 @@
     .upload-status.error { background: #ffebee; }
     .upload-status.pending { background: #fff8e1; }
     .upload-status.loading { background: #e3f2fd; }
- 
+
     /* ── Progress bar ── */
     .progress-bar { height: 4px; background: var(--borde); border-radius: 2px; overflow: hidden; margin: 12px 0; }
     .progress-fill { height: 100%; background: var(--azul); border-radius: 2px; transition: width 0.3s; }
- 
+
     /* ── Info box ── */
     .info-box { background: #e6f0f3; border-left: 4px solid var(--azul); padding: 12px 14px; border-radius: 0 8px 8px 0; font-size: 13px; color: var(--azul); margin-bottom: 12px; line-height: 1.5; }
- 
-    /* ── Drive config ── */
-    .drive-input { font-size: 13px !important; }
- 
+
     /* ── Spinner ── */
     @keyframes spin { to { transform: rotate(360deg); } }
     .spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
-    .spinner-dark { border-color: rgba(0,60,73,0.2); border-top-color: var(--azul); }
- 
-    /* ── Notificación toast ── */
+
+    /* ── Toast ── */
     #toast {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
       background: #1a2426; color: white;
@@ -371,27 +313,175 @@
     #toast.show { transform: translateX(-50%) translateY(0); }
     #toast.success { background: var(--verde); }
     #toast.error { background: var(--rojo); }
- 
+
     /* ── Offline badge ── */
     #offline-badge {
-      display: none;
-      background: var(--naranja);
-      color: white;
-      text-align: center;
-      font-size: 12px;
-      padding: 6px;
-      font-weight: 600;
+      display: none; background: var(--naranja);
+      color: white; text-align: center;
+      font-size: 12px; padding: 6px; font-weight: 600;
     }
     body.offline #offline-badge { display: block; }
- 
+
     @media (min-width: 600px) {
       .riesgos-grid { grid-template-columns: repeat(3, 1fr); }
     }
+
+    /* ══════════════════════════════════════
+       PANTALLA SUPERPUESTA — Material & Manual
+       ══════════════════════════════════════ */
+    .overlay-screen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--fondo);
+      z-index: 300;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .overlay-screen.visible { display: flex; flex-direction: column; }
+
+    /* Cabecera de la pantalla superpuesta */
+    .overlay-header {
+      background: var(--azul);
+      color: white;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .overlay-header h2 { font-size: 15px; font-weight: 600; flex: 1; margin: 0; }
+    .btn-volver {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-volver:active { background: rgba(255,255,255,0.25); }
+
+    /* Contenido de las pantallas */
+    .overlay-body { padding: 16px; flex: 1; max-width: 900px; width: 100%; margin: 0 auto; }
+
+    /* ── Buscador de charlas ── */
+    .buscador-wrap { position: sticky; top: 54px; z-index: 9; background: var(--fondo); padding: 10px 0 6px; }
+    #input-buscar {
+      width: 100%;
+      padding: 11px 16px 11px 42px;
+      border: 1.5px solid var(--borde);
+      border-radius: 10px;
+      font-size: 15px;
+      color: var(--texto);
+      background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234a6068' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 14px center;
+      -webkit-appearance: none;
+      outline: none;
+    }
+    #input-buscar:focus { border-color: var(--azul); }
+
+    /* ── Tarjetas de charla ── */
+    .charla-count { font-size: 12px; color: var(--texto-sec); margin: 10px 0 8px; font-weight: 500; }
+    .charla-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 14px;
+      margin-bottom: 6px;
+      background: white;
+      border-radius: 10px;
+      border: 1.5px solid var(--borde);
+      text-decoration: none;
+      color: var(--texto);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .charla-item:active { background: #e6f0f3; border-color: var(--azul); }
+    .charla-badge {
+      background: var(--azul);
+      color: white;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      flex-shrink: 0;
+      letter-spacing: 0.5px;
+      min-width: 52px;
+      text-align: center;
+    }
+    .charla-badge.indice { background: var(--naranja); }
+    .charla-titulo { flex: 1; font-size: 14px; font-weight: 500; line-height: 1.3; }
+    .charla-arrow { color: var(--borde); font-size: 16px; flex-shrink: 0; }
+
+    /* ── Botones flotantes de acceso rápido ── */
+    .acceso-rapido {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .btn-acceso {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 16px 10px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-acceso:active { transform: scale(0.97); }
+    .btn-acceso .acc-icon { font-size: 26px; }
+    .btn-acceso-material { background: #e6f0f3; color: var(--azul); border: 1.5px solid #b0ccd5; }
+    .btn-acceso-manual { background: #fff3ee; color: var(--naranja); border: 1.5px solid #f2c4ae; }
+
+    /* ── Manual de uso ── */
+    .manual-section { margin-bottom: 20px; }
+    .manual-section h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--azul);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--naranja);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .manual-section p, .manual-section li {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--texto);
+    }
+    .manual-section ol, .manual-section ul {
+      padding-left: 18px;
+      margin-top: 6px;
+    }
+    .manual-section li { margin-bottom: 5px; }
+    .manual-tip {
+      background: #e6f0f3;
+      border-left: 3px solid var(--azul);
+      padding: 10px 13px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: var(--azul);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .manual-contacto {
+      background: var(--azul);
+      color: white;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .manual-contacto strong { display: block; font-size: 13px; opacity: 0.75; margin-bottom: 2px; }
   </style>
 </head>
 <body>
   <div id="offline-badge">📵 Sin conexión — el registro se guardará para sincronizar luego</div>
- 
+
   <header class="app-header">
     <div id="logo-header" style="width:42px;height:42px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
       <svg width="42" height="42" viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg">
@@ -405,32 +495,33 @@
       <div class="header-title">Charla Diaria</div>
       <div class="header-sub">SENERCOM Limitada</div>
     </div>
-    <button onclick="forzarActualizacion()" title="Limpiar caché y actualizar" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:7px;padding:6px 10px;font-size:12px;cursor:pointer;">🔄 Actualizar</button>
+    <button onclick="forzarActualizacion()" title="Limpiar caché y actualizar" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:7px;padding:6px 10px;font-size:12px;cursor:pointer;">🔄</button>
   </header>
- 
+
   <nav class="stepper" id="stepper">
-    <button class="step-btn active" onclick="irAPaso(0)" id="tab0">
-      <span class="step-icon">📋</span>
-      <span>Obra</span>
-    </button>
-    <button class="step-btn" onclick="irAPaso(1)" id="tab1">
-      <span class="step-icon">⚠️</span>
-      <span>Riesgos</span>
-    </button>
-    <button class="step-btn" onclick="irAPaso(2)" id="tab2">
-      <span class="step-icon">✍️</span>
-      <span>Firmas</span>
-    </button>
-    <button class="step-btn" onclick="irAPaso(3)" id="tab3">
-      <span class="step-icon">☁️</span>
-      <span>Guardar</span>
-    </button>
+    <button class="step-btn active" onclick="irAPaso(0)" id="tab0"><span class="step-icon">📋</span><span>Obra</span></button>
+    <button class="step-btn" onclick="irAPaso(1)" id="tab1"><span class="step-icon">⚠️</span><span>Riesgos</span></button>
+    <button class="step-btn" onclick="irAPaso(2)" id="tab2"><span class="step-icon">✍️</span><span>Firmas</span></button>
+    <button class="step-btn" onclick="irAPaso(3)" id="tab3"><span class="step-icon">☁️</span><span>Guardar</span></button>
   </nav>
- 
+
   <div class="main">
- 
+
     <!-- PASO 1: DATOS DE LA OBRA -->
     <div class="section visible" id="paso0">
+
+      <!-- Acceso rápido a material y manual -->
+      <div class="acceso-rapido">
+        <button class="btn-acceso btn-acceso-material" onclick="abrirMaterial()">
+          <span class="acc-icon">📚</span>
+          <span>Material de Apoyo</span>
+        </button>
+        <button class="btn-acceso btn-acceso-manual" onclick="abrirManual()">
+          <span class="acc-icon">📖</span>
+          <span>Manual de Uso</span>
+        </button>
+      </div>
+
       <div class="card">
         <div class="card-title" data-icon="🏗️">Datos de la obra</div>
         <div class="field">
@@ -458,7 +549,7 @@
           </div>
         </div>
       </div>
- 
+
       <div class="card">
         <div class="card-title" data-icon="👷">Relator</div>
         <div class="field">
@@ -476,7 +567,7 @@
           </div>
         </div>
       </div>
- 
+
       <div class="card">
         <div class="card-title" data-icon="📝">Tipo de charla</div>
         <div class="tipo-grid" id="tipo-grid">
@@ -488,25 +579,23 @@
           <div class="tipo-item" onclick="selTipo(this, 'Otros')"><div class="tipo-radio"></div>Otros</div>
         </div>
       </div>
- 
+
       <div class="card">
         <div class="card-title" data-icon="💬">Temas y observaciones</div>
         <div class="field">
           <textarea id="temas" placeholder="Describa los temas tratados en la charla..."></textarea>
         </div>
       </div>
- 
+
       <button class="btn-primary" onclick="validarPaso0()">Continuar → Riesgos</button>
     </div>
- 
+
     <!-- PASO 2: RIESGOS -->
     <div class="section" id="paso1">
       <div class="card">
         <div class="card-title" data-icon="⚠️">Riesgos identificados</div>
         <div class="info-box">Marque todos los riesgos asociados a la actividad de hoy.</div>
-        <div class="riesgos-grid" id="riesgos-grid">
-          <!-- Se genera dinámicamente -->
-        </div>
+        <div class="riesgos-grid" id="riesgos-grid"></div>
       </div>
       <div class="card">
         <div class="card-title" data-icon="➕">Otros riesgos</div>
@@ -519,23 +608,20 @@
         <button class="btn-primary" style="flex:2; margin-top:0" onclick="irAPaso(2)">Continuar → Firmas</button>
       </div>
     </div>
- 
+
     <!-- PASO 3: ASISTENTES Y FIRMAS -->
     <div class="section" id="paso2">
       <div class="info-box" id="firma-info">Cada trabajador debe ingresar sus datos y firmar en el espacio indicado.</div>
- 
       <div id="lista-asistentes"></div>
- 
       <button class="btn-agregar" onclick="agregarAsistente()">
         <span style="font-size:20px;">+</span> Agregar trabajador
       </button>
- 
       <div style="margin-top:16px; display:flex; gap:10px;">
         <button class="btn-secondary" style="flex:1" onclick="irAPaso(1)">← Volver</button>
         <button class="btn-primary" id="btn-finalizar" style="flex:2; margin-top:0" onclick="validarFirmas()">Revisar y guardar →</button>
       </div>
     </div>
- 
+
     <!-- PASO 4: GUARDAR -->
     <div class="section" id="paso3">
       <div id="resumen-container">
@@ -543,30 +629,134 @@
           <div class="card-title" data-icon="📄">Resumen del registro</div>
           <div id="resumen-body"></div>
         </div>
- 
         <div class="card">
           <div class="card-title" data-icon="☁️">Subir a Google Drive</div>
-          <div class="info-box">El registro se guardará como imagen PNG en la carpeta de SENERCOM en Drive.</div>
- 
+          <div class="info-box">El registro se guardará como PDF en la carpeta de SENERCOM en Drive.</div>
           <input type="hidden" id="drive-folder-id" value="18er4JOP928529XE4hazxMNBuvjf6b63_">
- 
           <div id="auth-status" style="margin-bottom:12px; display:none;"></div>
- 
           <button class="btn-primary btn-naranja" id="btn-subir" onclick="iniciarSubida()">
             <span id="btn-subir-text">🔐 Autorizar y guardar en Drive</span>
           </button>
-          <button class="btn-secondary" onclick="guardarLocalSolo()">💾 Solo guardar imagen local</button>
+          <button class="btn-secondary" onclick="guardarLocalSolo()">💾 Solo guardar PDF local</button>
         </div>
       </div>
- 
-      <div id="resultado-container" style="display:none;">
-      </div>
+      <div id="resultado-container" style="display:none;"></div>
     </div>
- 
+
   </div><!-- /main -->
- 
+
+  <!-- ══════════════════════════════════════
+       PANTALLA: MATERIAL DE APOYO
+       ══════════════════════════════════════ -->
+  <div class="overlay-screen" id="pantalla-material">
+    <div class="overlay-header">
+      <button class="btn-volver" onclick="cerrarMaterial()">← Volver</button>
+      <h2>📚 Material de Apoyo</h2>
+    </div>
+    <div class="overlay-body">
+      <div class="info-box">
+        Charlas del prevencionista. Toca cualquiera para abrirla en el navegador y usarla como base para la charla de hoy.
+      </div>
+      <div class="buscador-wrap">
+        <input type="search" id="input-buscar" placeholder="Buscar por número o tema…" oninput="filtrarCharlas()" autocomplete="off">
+      </div>
+      <div class="charla-count" id="charla-count"></div>
+      <div id="lista-charlas"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PANTALLA: MANUAL DE USO
+       ══════════════════════════════════════ -->
+  <div class="overlay-screen" id="pantalla-manual">
+    <div class="overlay-header">
+      <button class="btn-volver" onclick="cerrarManual()">← Volver</button>
+      <h2>📖 Manual de Uso</h2>
+    </div>
+    <div class="overlay-body">
+
+      <div class="manual-section">
+        <h3>📋 ¿Qué es la Charla Diaria?</h3>
+        <p>Es una instancia de capacitación preventiva que se realiza al inicio de cada jornada laboral, con una duración máxima de <strong>5 minutos</strong>. Su objetivo es reforzar la seguridad y prevenir accidentes en el lugar de trabajo, cumpliendo el Art. N°21 del Decreto N°40 de la Ley 16.744.</p>
+      </div>
+
+      <div class="manual-section">
+        <h3>🏗️ Paso 1 — Datos de la obra</h3>
+        <ol>
+          <li>Ingresa el nombre de la <strong>obra o faena</strong> donde se realiza la charla.</li>
+          <li>Confirma la <strong>fecha</strong> (se llena automáticamente con hoy).</li>
+          <li>Agrega el <strong>área de trabajo</strong> y los horarios de inicio y término.</li>
+          <li>Escribe el nombre del <strong>relator</strong> (quien dicta la charla).</li>
+          <li>Selecciona el <strong>tipo de charla</strong> y describe los temas tratados.</li>
+        </ol>
+        <div class="manual-tip">💡 Usa el Material de Apoyo para preparar los temas antes de dictar la charla.</div>
+      </div>
+
+      <div class="manual-section">
+        <h3>⚠️ Paso 2 — Riesgos</h3>
+        <ol>
+          <li>Marca todos los <strong>riesgos identificados</strong> para la actividad del día.</li>
+          <li>Si hay alguno que no aparece en la lista, escríbelo en el campo <em>Otros riesgos</em>.</li>
+        </ol>
+      </div>
+
+      <div class="manual-section">
+        <h3>✍️ Paso 3 — Firmas de asistentes</h3>
+        <ol>
+          <li>Toca <strong>+ Agregar trabajador</strong> por cada persona presente.</li>
+          <li>Ingresa el <strong>nombre completo</strong> y el <strong>RUT</strong> de cada uno.</li>
+          <li>Cada trabajador debe <strong>firmar con el dedo</strong> en el espacio indicado.</li>
+          <li>Toca <strong>Confirmar firma</strong> para validar al trabajador.</li>
+          <li>Repite el proceso para todos los asistentes.</li>
+        </ol>
+        <div class="manual-tip">💡 El número del asistente se pone verde cuando la firma está confirmada.</div>
+      </div>
+
+      <div class="manual-section">
+        <h3>☁️ Paso 4 — Guardar el registro</h3>
+        <ol>
+          <li>Revisa el <strong>resumen</strong> del registro antes de guardar.</li>
+          <li>Toca <strong>Autorizar y guardar en Drive</strong> para subir el PDF automáticamente a la carpeta SENERCOM en Google Drive.</li>
+          <li>También puedes descargar el PDF en el dispositivo con <em>Solo guardar PDF local</em>.</li>
+        </ol>
+      </div>
+
+      <div class="manual-section">
+        <h3>📚 Material de Apoyo</h3>
+        <ol>
+          <li>Toca el botón <strong>Material de Apoyo</strong> en la pantalla principal.</li>
+          <li>Usa el buscador o recorre la lista para encontrar el tema.</li>
+          <li>Toca una charla — se abre el documento para leerlo.</li>
+          <li>Usa ese contenido para preparar o dictar la charla de 5 minutos.</li>
+        </ol>
+        <div class="manual-tip">💡 El archivo ÍNDICE lista todos los temas disponibles con su número de charla.</div>
+      </div>
+
+      <div class="manual-section">
+        <h3>🔄 Otras funciones</h3>
+        <ul>
+          <li><strong>El registro se guarda automáticamente</strong> mientras avanzas entre pasos, por si cierras la app accidentalmente.</li>
+          <li>El botón <strong>🔄</strong> en el encabezado limpia el caché y actualiza la app a la última versión.</li>
+          <li>Si no tienes conexión, la app igual funciona y avisa con una barra naranja.</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>📞 Contacto</h3>
+        <div class="manual-contacto">
+          <strong>Prevencionista de riesgos</strong>
+          fsuarez@senercom.cl
+          <br><br>
+          <strong>Administración de sistemas</strong>
+          cbraun@senercom.cl
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <div id="toast"></div>
- 
+
   <!-- SCRIPTS -->
   <script>
   // ═══════════════════════════════════════════════════════
@@ -576,7 +766,7 @@
   let tipoSeleccionado = '';
   let asistentes = [];
   let firmaRelator = null;
- 
+
   const RIESGOS = [
     'Sobresfuerzo manejo manual','Atropello','Caída a distinto nivel',
     'Caída al mismo nivel','Caída de material','Mov. repetitivo',
@@ -589,12 +779,65 @@
     'Exposición a ruido','Exposición a vapores','Maniobras',
     'Excavaciones','Explosión'
   ];
- 
+
   const GOOGLE_CLIENT_ID = '72369192874-rgv4vqjl243p39fv0dntkl5a4m13s8k6.apps.googleusercontent.com';
   const SCOPES = 'https://www.googleapis.com/auth/drive.file';
   let tokenCliente = null;
   let accessToken = null;
- 
+
+  // ═══════════════════════════════════════════════════════
+  //  CATÁLOGO DE CHARLAS (Drive IDs del prevencionista)
+  // ═══════════════════════════════════════════════════════
+  const CHARLAS = [
+    { num: 'ÍNDICE', titulo: 'Índice General de Charlas', id: '1KZdIeadNiF956LhhkDP8fESSce8spKDc', esIndice: true },
+    { num: '013', titulo: 'Charla 013', id: '1TgH3yMG4kB0k9IeEkBCpTQt1o5Mzi2dF' },
+    { num: '014', titulo: 'Charla 014', id: '1zkJD3KhACufqh9l3ycgeduUAiLYwgPjU' },
+    { num: '021', titulo: 'Charla 021', id: '1cdyAFb0qgKv3jk7S5MV1_Bi9oiWLhG9p' },
+    { num: '028', titulo: 'Charla 028', id: '1fhZIxFA59q6hcnECTRs3-IndUoC83tFp' },
+    { num: '033', titulo: 'Charla 033', id: '1Nu-KySgU88I6d5G1muxb2b1TebpliPKh' },
+    { num: '035', titulo: 'Charla 035', id: '11LYlDqj5GCocq4_2PQGbrHOjLkfTQRRn' },
+    { num: '044', titulo: 'Charla 044', id: '1TzK6Cz6daRKpPgSuJUsNmaF-aRddjAvO' },
+    { num: '053', titulo: 'Charla 053', id: '1XUfSDh71R5cWg9xUyM35xTJChkLgLxE5' },
+    { num: '054', titulo: 'Charla 054', id: '1UjGvO_SsWxhbc4MREZ4WVtpBlliH8Zua' },
+    { num: '056', titulo: 'Charla 056', id: '1BVp6IgWcLZ3Vx1Sig2SCjyCiwu38iudy' },
+    { num: '059', titulo: 'Charla 059', id: '17LXWNr-3xmes4v2WFDHEb02G1O2bcLKq' },
+    { num: '060', titulo: 'Charla 060', id: '162eH1-PDna2l-dbia6KadgxQD3F6aDli' },
+    { num: '061', titulo: 'Charla 061', id: '1-2HIDn56Lq5CIQ1dFYLg3Q7ZxJ3am9_A' },
+    { num: '062', titulo: 'Charla 062', id: '1gVJjQ4eTGTRHjnneAK7IbAnuhfL7gJsT' },
+    { num: '063', titulo: 'Charla 063', id: '11688ChWjo5acKXWUpBm54mVnjpohn8o-' },
+    { num: '065', titulo: 'Charla 065', id: '1ZjXoZ-EvfN_a94Q7fOu_1whxrsP__eJn' },
+    { num: '066', titulo: 'Charla 066', id: '13OYovcoZjP7N-_aGN_iOlbNT46hj94qy' },
+    { num: '067', titulo: 'Charla 067', id: '1XUqboTzjsTQEvW_syH0lwq7tIGXrazL0' },
+    { num: '068', titulo: 'Charla 068', id: '1sAUZpigKcqyP7HD72LA35lzF1Gv9Jx-A' },
+    { num: '069', titulo: 'Charla 069', id: '1ekyf5_aYTFjYrv2gQrsIvQV0LpJ6Qi9i' },
+    { num: '070', titulo: 'Charla 070', id: '19i80jm1OC5_3rdOhxMBAyxN2UslQ_Z78' },
+    { num: '071', titulo: 'Charla 071', id: '1_P55mfFBimws0sSPvNeIsv_XQfcyJFXB' },
+    { num: '072', titulo: 'Charla 072', id: '1xESPZ4sEm89uTo0IP81StRrRXyKU1Wgp' },
+    { num: '073', titulo: 'Charla 073', id: '1KwPk9qQ0bsHJiqPA14kmMDA9dbHrYIf3' },
+    { num: '075', titulo: 'Charla 075', id: '1rPiieIrCSFAuw32_ae91z1s-B4eGV8Zn' },
+    { num: '076', titulo: 'Charla 076', id: '1_aG9JOW6pZ_-IXi2-4GHZP_yYgEuNYPi' },
+    { num: '080', titulo: 'Charla 080', id: '1SukZCGUtFnvbpANZhAVY06HN5GKvydSr' },
+    { num: '081', titulo: 'Charla 081', id: '1VRxs_Yf6u5r22HXTbVmMHt_Xt-X-uCiz' },
+    { num: '082', titulo: 'Charla 082', id: '1alIjnUja3rXZvahk18SgtplJAeSJb5wf' },
+    { num: '083', titulo: 'Charla 083', id: '1kuRp1QcP9x0o_hWmh0cMeivxWNJdI_pn' },
+    { num: '084', titulo: 'Charla 084', id: '1FqfOktvb2VMWEZ0xNIgcy28d5-zHSqQy' },
+    { num: '085', titulo: 'Charla 085', id: '1E2VaxiVYqq6IlRCADIe_1bUV-0yJwqWA' },
+    { num: '086', titulo: 'Charla 086', id: '1C9MS_9e-_zA27tqakfYs1TSGQJFZgMsf' },
+    { num: '087', titulo: 'Charla 087', id: '1P1S86LSAmQuIa3xKvuOYPaauC58Vh18A' },
+    { num: '088', titulo: 'Charla 088', id: '1jtd7r0DDkjQa_Bp3GXVuBbSZa032-lc6' },
+    { num: '089', titulo: 'Charla 089', id: '1TYjzg-FgOIQ9HzFNYpMVoc1dEd7eciGd' },
+    { num: '090', titulo: 'Charla 090', id: '1YPELpG-s423MVngKSpA2HLIIFYoJQtEM' },
+    { num: '091', titulo: 'Charla 091', id: '1N_6K9llPb0AvwsuLjHT5ztxv-PAJGfN1' },
+    { num: '092', titulo: 'Charla 092', id: '1eJQE3pPmV9gy-GwQOJ6sW1wQfRhVW3Iz' },
+    { num: '093', titulo: 'Charla 093', id: '1NXcFjrko3caxJo1Cyx3w631w0j7zibCd' },
+    { num: '094', titulo: 'Charla 094', id: '1oE3j_zzsMg6_8fTgkfo1nejAZ53sbCjC' },
+    { num: '095', titulo: 'Charla 095', id: '1IoLD3uZTebpJo931OX6H_Vyq8JEEOkhD' },
+    { num: '096', titulo: 'Charla 096', id: '1G_ooPlOUUsjiQNMFpOwx7-UE-uB7Pk4D' },
+    { num: '097', titulo: 'Charla 097', id: '1ALj9V6TXNvrG_p-88A03EvOkdRALqzLz' },
+    { num: '100', titulo: 'Charla 100', id: '1GSelpBIUnh-jmVRKtz7PeUZi3J0uVtW_' },
+    { num: '120', titulo: 'Charla 120', id: '1bUzhfNSY_XkhleSIy-74matpfrDtl2Gj' },
+  ];
+
   // ═══════════════════════════════════════════════════════
   //  INICIALIZACIÓN
   // ═══════════════════════════════════════════════════════
@@ -604,16 +847,57 @@
     const hh = String(hoy.getHours()).padStart(2,'0');
     const mm = String(hoy.getMinutes()).padStart(2,'0');
     document.getElementById('hora_inicio').value = `${hh}:${mm}`;
- 
     generarRiesgos();
     cargarDesdeStorage();
- 
-    // Monitorear conexión
     window.addEventListener('offline', () => document.body.classList.add('offline'));
     window.addEventListener('online', () => document.body.classList.remove('offline'));
     if (!navigator.onLine) document.body.classList.add('offline');
   });
- 
+
+  // ═══════════════════════════════════════════════════════
+  //  PANTALLAS SUPERPUESTAS
+  // ═══════════════════════════════════════════════════════
+  function abrirMaterial() {
+    document.getElementById('pantalla-material').classList.add('visible');
+    document.getElementById('input-buscar').value = '';
+    renderCharlas(CHARLAS);
+    window.scrollTo(0, 0);
+  }
+  function cerrarMaterial() {
+    document.getElementById('pantalla-material').classList.remove('visible');
+  }
+  function abrirManual() {
+    document.getElementById('pantalla-manual').classList.add('visible');
+    window.scrollTo(0, 0);
+  }
+  function cerrarManual() {
+    document.getElementById('pantalla-manual').classList.remove('visible');
+  }
+
+  function filtrarCharlas() {
+    const q = document.getElementById('input-buscar').value.toLowerCase().trim();
+    const filtradas = q
+      ? CHARLAS.filter(c => c.num.toLowerCase().includes(q) || c.titulo.toLowerCase().includes(q))
+      : CHARLAS;
+    renderCharlas(filtradas);
+  }
+
+  function renderCharlas(lista) {
+    const cont = document.getElementById('lista-charlas');
+    const count = document.getElementById('charla-count');
+    count.textContent = lista.length === CHARLAS.length
+      ? `${lista.length} charlas disponibles`
+      : `${lista.length} resultado${lista.length !== 1 ? 's' : ''}`;
+
+    cont.innerHTML = lista.map(c => `
+      <a class="charla-item" href="https://drive.google.com/file/d/${c.id}/view" target="_blank" rel="noopener noreferrer">
+        <span class="charla-badge ${c.esIndice ? 'indice' : ''}">${c.num}</span>
+        <span class="charla-titulo">${c.titulo}</span>
+        <span class="charla-arrow">›</span>
+      </a>
+    `).join('');
+  }
+
   // ═══════════════════════════════════════════════════════
   //  NAVEGACIÓN POR PASOS
   // ═══════════════════════════════════════════════════════
@@ -627,7 +911,7 @@
     guardarEnStorage();
     if (n === 3) construirResumen();
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  TIPO DE CHARLA
   // ═══════════════════════════════════════════════════════
@@ -636,7 +920,7 @@
     el.classList.add('selected');
     tipoSeleccionado = tipo;
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  VALIDACIÓN PASO 0
   // ═══════════════════════════════════════════════════════
@@ -649,7 +933,7 @@
     if (!relator) { toast('Ingrese el nombre del relator', 'error'); return; }
     irAPaso(1);
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  RIESGOS
   // ═══════════════════════════════════════════════════════
@@ -660,13 +944,11 @@
       div.className = 'riesgo-item';
       div.id = `riesgo-${i}`;
       div.innerHTML = `<div class="riesgo-check"></div><span>${r}</span>`;
-      div.addEventListener('click', () => {
-        div.classList.toggle('checked');
-      });
+      div.addEventListener('click', () => div.classList.toggle('checked'));
       g.appendChild(div);
     });
   }
- 
+
   function getRiesgosSeleccionados() {
     const sel = [];
     document.querySelectorAll('.riesgo-item.checked').forEach(el => {
@@ -676,7 +958,7 @@
     if (otros) sel.push(otros);
     return sel;
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  ASISTENTES
   // ═══════════════════════════════════════════════════════
@@ -689,7 +971,7 @@
       if (inputs.length) inputs[inputs.length - 1].focus();
     }, 100);
   }
- 
+
   function renderAsistentes() {
     const cont = document.getElementById('lista-asistentes');
     cont.innerHTML = '';
@@ -738,24 +1020,20 @@
       if (a.firma) {
         const canvas = document.getElementById(`canvas-${a.id}`);
         const img = new Image();
-        img.onload = () => {
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-        };
+        img.onload = () => canvas.getContext('2d').drawImage(img, 0, 0);
         img.src = a.firma;
       }
     });
   }
- 
+
   function toggleAsistente(id) {
     const a = asistentes.find(x => x.id === id);
     if (a) {
       a.abierto = !a.abierto;
-      const body = document.getElementById(`body-${id}`);
-      body.classList.toggle('hidden', !a.abierto);
+      document.getElementById(`body-${id}`).classList.toggle('hidden', !a.abierto);
     }
   }
- 
+
   function actualizarAsistente(id, campo, valor) {
     const a = asistentes.find(x => x.id === id);
     if (a) a[campo] = valor;
@@ -764,12 +1042,12 @@
     if (campo === 'nombre' && header) header.textContent = valor || 'Trabajador';
     if (campo === 'rut' && subheader) subheader.textContent = valor || 'RUT no ingresado';
   }
- 
+
   function eliminarAsistente(id) {
     asistentes = asistentes.filter(x => x.id !== id);
     renderAsistentes();
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  CANVAS DE FIRMA
   // ═══════════════════════════════════════════════════════
@@ -780,54 +1058,31 @@
     canvas.width = container.offsetWidth || 300;
     canvas.height = 140;
     const ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#003B49';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
- 
+    ctx.strokeStyle = '#003B49'; ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     let drawing = false;
-    let trazos = 0;
- 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
-      if (e.touches) {
-        return {
-          x: (e.touches[0].clientX - rect.left) * scaleX,
-          y: (e.touches[0].clientY - rect.top) * scaleY
-        };
-      }
+      if (e.touches) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
       return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
     };
- 
     const start = (e) => {
-      e.preventDefault();
-      drawing = true;
-      const pos = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
+      e.preventDefault(); drawing = true;
+      const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
       const label = canvas.parentElement.querySelector('.firma-label');
       if (label) label.style.opacity = '0';
     };
     const draw = (e) => {
-      if (!drawing) return;
-      e.preventDefault();
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-      trazos++;
+      if (!drawing) return; e.preventDefault();
+      const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke();
     };
     const end = (e) => {
-      if (!drawing) return;
-      drawing = false;
-      ctx.closePath();
-      if (trazos > 2) {
-        const a = asistentes.find(x => x.id === id);
-        if (a) a.firmaTemp = canvas.toDataURL('image/png');
-      }
+      if (!drawing) return; drawing = false; ctx.closePath();
+      const a = asistentes.find(x => x.id === id);
+      if (a) a.firmaTemp = canvas.toDataURL('image/png');
     };
- 
     canvas.addEventListener('mousedown', start);
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', end);
@@ -835,63 +1090,53 @@
     canvas.addEventListener('touchmove', draw, { passive: false });
     canvas.addEventListener('touchend', end);
   }
- 
+
   function limpiarFirma(id) {
     const canvas = document.getElementById(`canvas-${id}`);
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     const a = asistentes.find(x => x.id === id);
     if (a) { a.firma = null; a.firmaTemp = null; a.firmado = false; }
     const label = canvas.parentElement.querySelector('.firma-label');
     if (label) label.style.opacity = '1';
     renderNumeros();
   }
- 
+
   function confirmarFirma(id) {
     const a = asistentes.find(x => x.id === id);
     if (!a) return;
     if (!a.nombre.trim()) { toast('Ingrese el nombre del trabajador', 'error'); return; }
     if (!a.rut.trim()) { toast('Ingrese el RUT del trabajador', 'error'); return; }
     const canvasOrig = document.getElementById(`canvas-${id}`);
-    const ctx = canvasOrig.getContext('2d');
-    const data = ctx.getImageData(0, 0, canvasOrig.width, canvasOrig.height).data;
-    const tieneTrazos = data.some(v => v !== 0);
-    if (!tieneTrazos) { toast('Por favor firme en el espacio indicado', 'error'); return; }
-    // Canvas temporal con fondo BLANCO — evita PNG transparente que se ve negro
+    const data = canvasOrig.getContext('2d').getImageData(0, 0, canvasOrig.width, canvasOrig.height).data;
+    if (!data.some(v => v !== 0)) { toast('Por favor firme en el espacio indicado', 'error'); return; }
     const canvasBlanco = document.createElement('canvas');
-    canvasBlanco.width = canvasOrig.width;
-    canvasBlanco.height = canvasOrig.height;
+    canvasBlanco.width = canvasOrig.width; canvasBlanco.height = canvasOrig.height;
     const ctxB = canvasBlanco.getContext('2d');
-    ctxB.fillStyle = '#ffffff';
-    ctxB.fillRect(0, 0, canvasBlanco.width, canvasBlanco.height);
+    ctxB.fillStyle = '#ffffff'; ctxB.fillRect(0, 0, canvasBlanco.width, canvasBlanco.height);
     ctxB.drawImage(canvasOrig, 0, 0);
     a.firma = canvasBlanco.toDataURL('image/png');
-    a.firmado = true;
-    a.abierto = false;
+    a.firmado = true; a.abierto = false;
     renderAsistentes();
     toast('✓ Firma confirmada', 'success');
   }
- 
+
   function renderNumeros() {
-    asistentes.forEach((a, idx) => {
+    asistentes.forEach(a => {
       const num = document.querySelector(`#asistente-card-${a.id} .asistente-num`);
       if (num) num.className = `asistente-num ${a.firmado ? 'firmado' : ''}`;
     });
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  VALIDAR FIRMAS
   // ═══════════════════════════════════════════════════════
   function validarFirmas() {
     if (asistentes.length === 0) { toast('Agregue al menos un trabajador', 'error'); return; }
     const sinFirmar = asistentes.filter(a => !a.firmado);
-    if (sinFirmar.length > 0) {
-      toast(`${sinFirmar.length} trabajador(es) sin confirmar firma`, 'error');
-      return;
-    }
+    if (sinFirmar.length > 0) { toast(`${sinFirmar.length} trabajador(es) sin confirmar firma`, 'error'); return; }
     irAPaso(3);
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  RESUMEN
   // ═══════════════════════════════════════════════════════
@@ -899,7 +1144,6 @@
     const riesgos = getRiesgosSeleccionados();
     const fecha = document.getElementById('fecha').value;
     const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '-';
- 
     document.getElementById('resumen-body').innerHTML = `
       <div class="resumen-row"><span class="resumen-label">Obra / Faena</span><span class="resumen-valor">${document.getElementById('obra').value}</span></div>
       <div class="resumen-row"><span class="resumen-label">Fecha</span><span class="resumen-valor">${fechaFmt}</span></div>
@@ -909,692 +1153,333 @@
       <div class="resumen-row"><span class="resumen-label">Asistentes</span><span class="resumen-valor"><span class="badge badge-verde">✓ ${asistentes.filter(a=>a.firmado).length} con firma</span></span></div>
     `;
   }
- 
+
   // ═══════════════════════════════════════════════════════
-  //  GENERAR PDF DEL REGISTRO
+  //  GENERAR PDF
   // ═══════════════════════════════════════════════════════
- 
-  function cargarImagenFirma(src) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject();
-      img.src = src;
-    });
-  }
- 
   async function generarPDF() {
     const { jsPDF } = window.jspdf;
-    // Tamaño carta en mm: 215.9 x 279.4
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
- 
-    const PW = 215.9;   // ancho página
-    const PH = 279.4;   // alto página
-    const ML = 12;      // margen izquierdo
-    const MR = 12;      // margen derecho
-    const W  = PW - ML - MR;  // ancho útil
-    const AZUL    = [0, 59, 73];
-    const NARANJA = [207, 69, 32];
-    const AZULCL  = [0, 95, 112];
-    const GRIS    = [245, 247, 248];
-    const BORDE   = [208, 215, 219];
-    const TEXTO   = [26, 36, 38];
-    const TEXTSEC = [74, 96, 104];
- 
+    const PW = 215.9, PH = 279.4, ML = 12, MR = 12, W = PW - ML - MR;
+    const AZUL=[0,59,73], NARANJA=[207,69,32], AZULCL=[0,95,112], GRIS=[245,247,248], BORDE=[208,215,219], TEXTO=[26,36,38], TEXTSEC=[74,96,104];
     let y = 0;
- 
-    // ─── helper: texto truncado ───
-    const trunc = (str, maxW, fs) => {
-      if (!str) return '';
-      doc.setFontSize(fs);
-      while (str.length > 1 && doc.getTextWidth(str) > maxW) str = str.slice(0, -1);
-      return str;
+    const trunc = (str, maxW, fs) => { if (!str) return ''; doc.setFontSize(fs); while (str.length > 1 && doc.getTextWidth(str) > maxW) str = str.slice(0,-1); return str; };
+    const celda = (label, valor, x, w, cy, h=10) => {
+      doc.setFillColor(248,250,251); doc.rect(x,cy,w,h,'F');
+      doc.setDrawColor(...BORDE); doc.setLineWidth(0.2); doc.rect(x,cy,w,h,'S');
+      doc.setFillColor(230,238,241); doc.rect(x,cy,w,4,'F');
+      doc.setFontSize(6); doc.setTextColor(...TEXTSEC); doc.setFont('helvetica','bold');
+      doc.text(label.toUpperCase(), x+1.5, cy+3);
+      doc.setFontSize(8.5); doc.setTextColor(...TEXTO); doc.setFont('helvetica','normal');
+      doc.text(trunc(valor||'',w-3,8.5), x+1.5, cy+h-2.5);
     };
- 
-    // ─── helper: celda con label ───
-    const celda = (label, valor, x, w, cy, h = 10) => {
-      doc.setFillColor(...[248, 250, 251]);
-      doc.rect(x, cy, w, h, 'F');
-      doc.setDrawColor(...BORDE);
-      doc.setLineWidth(0.2);
-      doc.rect(x, cy, w, h, 'S');
-      // fondo label
-      doc.setFillColor(...[230, 238, 241]);
-      doc.rect(x, cy, w, 4, 'F');
-      doc.setFontSize(6);
-      doc.setTextColor(...TEXTSEC);
-      doc.setFont('helvetica', 'bold');
-      doc.text(label.toUpperCase(), x + 1.5, cy + 3);
-      // valor
-      doc.setFontSize(8.5);
-      doc.setTextColor(...TEXTO);
-      doc.setFont('helvetica', 'normal');
-      const val = trunc(valor || '', w - 3, 8.5);
-      doc.text(val, x + 1.5, cy + h - 2.5);
+    const celdaMultilinea = (label, valor, x, w, cy, fontSize=8.5, minH=14) => {
+      doc.setFontSize(fontSize); doc.setFont('helvetica','normal');
+      const lineas = (valor||'') ? doc.splitTextToSize(valor, w-4) : [''];
+      const altoLinea = fontSize * 0.42;
+      const h = Math.max(minH, lineas.length * altoLinea + 7);
+      doc.setFillColor(248,250,251); doc.rect(x,cy,w,h,'F');
+      doc.setDrawColor(...BORDE); doc.setLineWidth(0.2); doc.rect(x,cy,w,h,'S');
+      doc.setFillColor(230,238,241); doc.rect(x,cy,w,4,'F');
+      doc.setFontSize(6); doc.setTextColor(...TEXTSEC); doc.setFont('helvetica','bold');
+      doc.text(label.toUpperCase(), x+1.5, cy+3);
+      doc.setFontSize(fontSize); doc.setTextColor(...TEXTO); doc.setFont('helvetica','normal');
+      let ly = cy+7; lineas.forEach(l => { doc.text(l, x+1.5, ly); ly += altoLinea; });
+      return h;
     };
- 
-    // ── Celda de texto MULTILÍNEA: crece según la cantidad de texto, sin cortar nada ──
-    // Retorna la altura total usada, para que el llamador desplace el resto del documento
-    const celdaMultilinea = (label, valor, x, w, cy, fontSize = 8.5, minH = 14) => {
-      doc.setFontSize(fontSize);
-      doc.setFont('helvetica', 'normal');
-      const texto = valor || '';
-      const lineasTexto = texto ? doc.splitTextToSize(texto, w - 4) : [''];
-      const altoLinea = fontSize * 0.42; // mm aproximados por línea a este tamaño
-      const altoTexto = lineasTexto.length * altoLinea;
-      const h = Math.max(minH, altoTexto + 7); // 7mm para el label + márgenes
- 
-      // Fondo y borde de la celda completa (ya con la altura correcta)
-      doc.setFillColor(248, 250, 251);
-      doc.rect(x, cy, w, h, 'F');
-      doc.setDrawColor(...BORDE);
-      doc.setLineWidth(0.2);
-      doc.rect(x, cy, w, h, 'S');
-      // Banda del label
-      doc.setFillColor(230, 238, 241);
-      doc.rect(x, cy, w, 4, 'F');
-      doc.setFontSize(6);
-      doc.setTextColor(...TEXTSEC);
-      doc.setFont('helvetica', 'bold');
-      doc.text(label.toUpperCase(), x + 1.5, cy + 3);
-      // Texto completo, línea por línea, SIN truncar
-      doc.setFontSize(fontSize);
-      doc.setTextColor(...TEXTO);
-      doc.setFont('helvetica', 'normal');
-      let ly = cy + 7;
-      lineasTexto.forEach(linea => {
-        doc.text(linea, x + 1.5, ly);
-        ly += altoLinea;
-      });
-      return h; // alto real usado, para desplazar lo que sigue
-    };
- 
-    // ══════════════════════════════════════════
-    // CABECERA
-    // ══════════════════════════════════════════
-    doc.setFillColor(...AZUL);
-    doc.rect(0, 0, PW, 22, 'F');
-    doc.setFillColor(...NARANJA);
-    doc.rect(0, 22, PW, 1.5, 'F');
- 
-    // Círculo logo
-    doc.setFillColor(...NARANJA);
-    doc.circle(PW - 18, 11, 8, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SNR', PW - 18, 12.5, { align: 'center' });
- 
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.text('REGISTRO DE TRABAJO SEGURO', ML, 10);
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(200, 220, 225);
-    doc.text('SENERCOM LIMITADA  |  Art. N°21 Decreto N°40 Ley 16.744', ML, 17);
- 
-    y = 26;
- 
-    // ══════════════════════════════════════════
-    // SECCIÓN: DATOS DE LA OBRA
-    // ══════════════════════════════════════════
-    doc.setFillColor(...AZUL);
-    doc.rect(ML, y, W, 6, 'F');
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('DATOS DE LA OBRA', ML + 2, y + 4.2);
-    y += 7;
- 
-    const fecha = document.getElementById('fecha').value;
-    const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL') : '';
- 
-    // Fila 1: Obra (ancho completo)
-    celda('Obra o Faena', document.getElementById('obra').value, ML, W, y, 10);
-    y += 11;
- 
-    // Fila 2: Fecha | Hora inicio | Hora término | Área
-    const c4 = W / 4;
-    celda('Fecha', fechaFmt, ML, c4, y);
-    celda('Hora inicio', document.getElementById('hora_inicio').value, ML + c4, c4, y);
-    celda('Hora término', document.getElementById('hora_termino').value, ML + c4 * 2, c4, y);
-    celda('Área de trabajo', document.getElementById('area').value, ML + c4 * 3, c4, y);
-    y += 11;
- 
-    // Fila 3: Relator | Cargo | Tipo charla
-    const c2 = W / 2;
-    const c3a = W * 0.35;
-    const c3b = W * 0.25;
-    const c3c = W - c3a - c3b;
-    celda('Relator', document.getElementById('relator').value, ML, c3a, y);
-    celda('Cargo', document.getElementById('cargo_relator').value, ML + c3a, c3b, y);
-    celda('Tipo de charla', tipoSeleccionado, ML + c3a + c3b, c3c, y);
-    y += 11;
- 
-    // Fila 4: Temas — MULTILÍNEA, crece según el texto sin límite ni recorte
-    const altoTemas = celdaMultilinea('Temas tratados / Observaciones', document.getElementById('temas').value, ML, W, y, 8.5, 14);
-    y += altoTemas + 1;
- 
-    // Si el texto de Temas fue muy largo y queda poco espacio, saltar a página nueva
-    // antes de la sección de Riesgos para no cortarla a la mitad
-    if (y > PH - 60) {
-      doc.addPage();
-      y = 15;
-    }
- 
-    // ══════════════════════════════════════════
-    // SECCIÓN: RIESGOS IDENTIFICADOS
-    // ══════════════════════════════════════════
-    y += 2;
-    doc.setFillColor(...AZUL);
-    doc.rect(ML, y, W, 6, 'F');
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('RIESGOS IDENTIFICADOS', ML + 2, y + 4.2);
-    y += 7;
- 
-    const riesgos = getRiesgosSeleccionados();
-    const colsR = 3;
-    const rW = W / colsR;
-    const rowsR = Math.ceil(RIESGOS.length / colsR);
-    const rowHR = 6;
- 
-    for (let i = 0; i < RIESGOS.length; i++) {
-      const row = Math.floor(i / colsR);
-      const col = i % colsR;
-      const rx = ML + col * rW;
-      const ry = y + row * rowHR;
-      const checked = riesgos.includes(RIESGOS[i]);
- 
-      // Fondo celda
-      doc.setFillColor(...(checked ? [230, 240, 243] : [255, 255, 255]));
-      doc.rect(rx, ry, rW, rowHR, 'F');
-      doc.setDrawColor(...BORDE);
-      doc.setLineWidth(0.15);
-      doc.rect(rx, ry, rW, rowHR, 'S');
- 
-      // Checkbox
+    // Cabecera
+    doc.setFillColor(...AZUL); doc.rect(0,0,PW,22,'F');
+    doc.setFillColor(...NARANJA); doc.rect(0,22,PW,1.5,'F');
+    doc.setFillColor(...NARANJA); doc.circle(PW-18,11,8,'F');
+    doc.setFontSize(7); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text('SNR',PW-18,12.5,{align:'center'});
+    doc.setFontSize(14); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+    doc.text('REGISTRO DE TRABAJO SEGURO',ML,10);
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(200,220,225);
+    doc.text('SENERCOM LIMITADA  |  Art. N°21 Decreto N°40 Ley 16.744',ML,17);
+    y=26;
+    // Datos obra
+    doc.setFillColor(...AZUL); doc.rect(ML,y,W,6,'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('DATOS DE LA OBRA',ML+2,y+4.2); y+=7;
+    const fecha=document.getElementById('fecha').value;
+    const fechaFmt=fecha?new Date(fecha+'T12:00:00').toLocaleDateString('es-CL'):'';
+    celda('Obra o Faena',document.getElementById('obra').value,ML,W,y,10); y+=11;
+    const c4=W/4;
+    celda('Fecha',fechaFmt,ML,c4,y); celda('Hora inicio',document.getElementById('hora_inicio').value,ML+c4,c4,y);
+    celda('Hora término',document.getElementById('hora_termino').value,ML+c4*2,c4,y);
+    celda('Área de trabajo',document.getElementById('area').value,ML+c4*3,c4,y); y+=11;
+    const c3a=W*0.35, c3b=W*0.25, c3c=W-c3a-c3b;
+    celda('Relator',document.getElementById('relator').value,ML,c3a,y);
+    celda('Cargo',document.getElementById('cargo_relator').value,ML+c3a,c3b,y);
+    celda('Tipo de charla',tipoSeleccionado,ML+c3a+c3b,c3c,y); y+=11;
+    const altoTemas=celdaMultilinea('Temas tratados / Observaciones',document.getElementById('temas').value,ML,W,y,8.5,14);
+    y+=altoTemas+1;
+    if (y>PH-60) { doc.addPage(); y=15; }
+    // Riesgos
+    y+=2;
+    doc.setFillColor(...AZUL); doc.rect(ML,y,W,6,'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('RIESGOS IDENTIFICADOS',ML+2,y+4.2); y+=7;
+    const riesgos=getRiesgosSeleccionados();
+    const colsR=3, rW=W/colsR, rowsR=Math.ceil(RIESGOS.length/colsR), rowHR=6;
+    for (let i=0;i<RIESGOS.length;i++) {
+      const row=Math.floor(i/colsR), col=i%colsR;
+      const rx=ML+col*rW, ry=y+row*rowHR;
+      const checked=riesgos.includes(RIESGOS[i]);
+      doc.setFillColor(...(checked?[230,240,243]:[255,255,255])); doc.rect(rx,ry,rW,rowHR,'F');
+      doc.setDrawColor(...BORDE); doc.setLineWidth(0.15); doc.rect(rx,ry,rW,rowHR,'S');
       if (checked) {
-        doc.setFillColor(...AZUL);
-        doc.rect(rx + 1.5, ry + 1.5, 3, 3, 'F');
-        doc.setFontSize(5);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.text('✓', rx + 2, ry + 4);
+        doc.setFillColor(...AZUL); doc.rect(rx+1.5,ry+1.5,3,3,'F');
+        doc.setFontSize(5); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold');
+        doc.text('✓',rx+2,ry+4);
       } else {
-        doc.setDrawColor(...BORDE);
-        doc.setLineWidth(0.3);
-        doc.rect(rx + 1.5, ry + 1.5, 3, 3, 'S');
+        doc.setDrawColor(...BORDE); doc.setLineWidth(0.3); doc.rect(rx+1.5,ry+1.5,3,3,'S');
       }
- 
-      // Texto riesgo
-      doc.setFontSize(6);
-      doc.setTextColor(...TEXTO);
-      doc.setFont('helvetica', 'normal');
-      doc.text(RIESGOS[i], rx + 6, ry + 4);
+      doc.setFontSize(6); doc.setTextColor(...TEXTO); doc.setFont('helvetica','normal');
+      doc.text(RIESGOS[i],rx+6,ry+4);
     }
-    y += rowsR * rowHR + 2;
- 
-    // Otros riesgos
-    const otros = document.getElementById('otros_riesgos').value.trim();
-    if (otros) {
-      celda('Otros riesgos identificados', otros, ML, W, y, 8);
-      y += 9;
-    }
- 
-    // ══════════════════════════════════════════
-    // SECCIÓN: REGISTRO DE ASISTENTES
-    // ══════════════════════════════════════════
-    y += 3;
-    doc.setFillColor(...AZUL);
-    doc.rect(ML, y, W, 6, 'F');
-    doc.setFontSize(7.5);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-    doc.text('REGISTRO DE ASISTENTES', ML + 2, y + 4.2);
-    y += 7;
- 
-    // Encabezados tabla
-    const tCols = [8, 55, 28, 35, 0];
-    tCols[4] = W - tCols.slice(0,4).reduce((a,b) => a+b, 0);
-    const tHeaders = ['N°', 'Nombre completo', 'RUT', 'Especialidad', 'Firma'];
-    const rowHT = 18;
- 
-    let xh = ML;
-    tHeaders.forEach((h, i) => {
-      doc.setFillColor(...AZULCL);
-      doc.rect(xh, y, tCols[i], 6, 'F');
-      doc.setFontSize(6.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
-      doc.text(h, xh + tCols[i] / 2, y + 4.2, { align: 'center' });
-      xh += tCols[i];
-    });
-    y += 6;
- 
-    // Filas asistentes
-    const filasTotal = Math.max(asistentes.length, 6);
-    for (let i = 0; i < filasTotal; i++) {
-      const a = asistentes[i];
-      const fy = y + i * rowHT;
-      const bg = i % 2 === 0 ? [255, 255, 255] : [248, 250, 251];
-      doc.setFillColor(...bg);
-      doc.rect(ML, fy, W, rowHT, 'F');
-      doc.setDrawColor(...BORDE);
-      doc.setLineWidth(0.15);
-      doc.rect(ML, fy, W, rowHT, 'S');
- 
-      let xc = ML;
-      tCols.forEach((w, ci) => {
-        doc.setDrawColor(...BORDE);
-        doc.setLineWidth(0.15);
-        doc.rect(xc, fy, w, rowHT, 'S');
- 
-        if (ci === 0) {
-          doc.setFontSize(9);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...AZUL);
-          doc.text(String(i + 1), xc + w / 2, fy + rowHT / 2 + 1, { align: 'center' });
+    y+=rowsR*rowHR+2;
+    const otros=document.getElementById('otros_riesgos').value.trim();
+    if (otros) { celda('Otros riesgos identificados',otros,ML,W,y,8); y+=9; }
+    // Asistentes
+    y+=3;
+    doc.setFillColor(...AZUL); doc.rect(ML,y,W,6,'F');
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+    doc.text('REGISTRO DE ASISTENTES',ML+2,y+4.2); y+=7;
+    const tCols=[8,55,28,35,0]; tCols[4]=W-tCols.slice(0,4).reduce((a,b)=>a+b,0);
+    const tHeaders=['N°','Nombre completo','RUT','Especialidad','Firma'];
+    const rowHT=18;
+    let xh=ML;
+    tHeaders.forEach((h,i)=>{
+      doc.setFillColor(...AZULCL); doc.rect(xh,y,tCols[i],6,'F');
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255);
+      doc.text(h,xh+tCols[i]/2,y+4.2,{align:'center'}); xh+=tCols[i];
+    }); y+=6;
+    const filasTotal=Math.max(asistentes.length,6);
+    for (let i=0;i<filasTotal;i++) {
+      const a=asistentes[i], fy=y+i*rowHT;
+      const bg=i%2===0?[255,255,255]:[248,250,251];
+      doc.setFillColor(...bg); doc.rect(ML,fy,W,rowHT,'F');
+      doc.setDrawColor(...BORDE); doc.setLineWidth(0.15); doc.rect(ML,fy,W,rowHT,'S');
+      let xc=ML;
+      tCols.forEach((w,ci)=>{
+        doc.setDrawColor(...BORDE); doc.setLineWidth(0.15); doc.rect(xc,fy,w,rowHT,'S');
+        if (ci===0) {
+          doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...AZUL);
+          doc.text(String(i+1),xc+w/2,fy+rowHT/2+1,{align:'center'});
         } else if (a) {
-          doc.setFontSize(7);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...TEXTO);
-          if (ci === 1) doc.text(trunc(a.nombre || '', w - 2, 7), xc + 1.5, fy + 5);
-          if (ci === 2) doc.text(trunc(a.rut || '', w - 2, 7), xc + 1.5, fy + 5);
-          if (ci === 3) doc.text(trunc(a.especialidad || '', w - 2, 7), xc + 1.5, fy + 5);
-          // Firma como imagen
-          if (ci === 4 && a.firma) {
-            try {
-              doc.addImage(a.firma, 'PNG', xc + 1, fy + 1, w - 2, rowHT - 2);
-            } catch(e) {}
-          }
+          doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(...TEXTO);
+          if (ci===1) doc.text(trunc(a.nombre||'',w-2,7),xc+1.5,fy+5);
+          if (ci===2) doc.text(trunc(a.rut||'',w-2,7),xc+1.5,fy+5);
+          if (ci===3) doc.text(trunc(a.especialidad||'',w-2,7),xc+1.5,fy+5);
+          if (ci===4&&a.firma) { try { doc.addImage(a.firma,'PNG',xc+1,fy+1,w-2,rowHT-2); } catch(e){} }
         }
-        xc += w;
+        xc+=w;
       });
     }
-    y += filasTotal * rowHT;
- 
-    // ══════════════════════════════════════════
-    // PIE DE PÁGINA
-    // ══════════════════════════════════════════
-    y += 4;
-    doc.setFillColor(...GRIS);
-    doc.rect(ML, y, W, 12, 'F');
-    doc.setDrawColor(...BORDE);
-    doc.setLineWidth(0.2);
-    doc.rect(ML, y, W, 12, 'S');
-    doc.setFontSize(6.5);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(...TEXTSEC);
-    doc.text(
-      'Los firmantes declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.',
-      PW / 2, y + 5, { align: 'center' }
-    );
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...AZUL);
-    doc.text(
-      `Generado: ${new Date().toLocaleString('es-CL')}  |  SENERCOM Limitada`,
-      PW / 2, y + 10, { align: 'center' }
-    );
- 
+    y+=filasTotal*rowHT;
+    // Pie
+    y+=4;
+    doc.setFillColor(...GRIS); doc.rect(ML,y,W,12,'F');
+    doc.setDrawColor(...BORDE); doc.setLineWidth(0.2); doc.rect(ML,y,W,12,'S');
+    doc.setFontSize(6.5); doc.setFont('helvetica','italic'); doc.setTextColor(...TEXTSEC);
+    doc.text('Los firmantes declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.',PW/2,y+5,{align:'center'});
+    doc.setFont('helvetica','normal'); doc.setTextColor(...AZUL);
+    doc.text(`Generado: ${new Date().toLocaleString('es-CL')}  |  SENERCOM Limitada`,PW/2,y+10,{align:'center'});
     return doc;
   }
- 
+
   // ═══════════════════════════════════════════════════════
   //  GOOGLE DRIVE
   // ═══════════════════════════════════════════════════════
   function iniciarSubida() {
-    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'TU_GOOGLE_CLIENT_ID_AQUI') {
-      mostrarInstruccionesConfig();
-      return;
-    }
-    if (!accessToken) {
-      autorizarDrive();
-    } else {
-      subirArchivo();
-    }
+    if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID==='TU_GOOGLE_CLIENT_ID_AQUI') { mostrarInstruccionesConfig(); return; }
+    if (!accessToken) { autorizarDrive(); } else { subirArchivo(); }
   }
- 
   function autorizarDrive() {
-    mostrarEstado('loading', '🔑 Autorizando con Google...', 'Se abrirá una ventana de Google para dar permiso');
+    mostrarEstado('loading','🔑 Autorizando con Google...','Se abrirá una ventana de Google para dar permiso');
     tokenCliente = google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: SCOPES,
+      client_id: GOOGLE_CLIENT_ID, scope: SCOPES,
       callback: (resp) => {
-        if (resp.error) {
-          mostrarEstado('error', '✗ Error de autorización', resp.error);
-          return;
-        }
+        if (resp.error) { mostrarEstado('error','✗ Error de autorización',resp.error); return; }
         accessToken = resp.access_token;
         subirArchivo();
       }
     });
     tokenCliente.requestAccessToken();
   }
- 
   async function subirArchivo() {
-    mostrarEstado('loading', '⏳ Generando PDF...', 'Espere mientras se procesa el registro');
+    mostrarEstado('loading','⏳ Generando PDF...','Espere mientras se procesa el registro');
     try {
       const doc = await generarPDF();
-      const fecha = document.getElementById('fecha').value.replace(/-/g, '');
-      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9áéíóúñ ]/g, '').substring(0, 30);
+      const fecha = document.getElementById('fecha').value.replace(/-/g,'');
+      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9áéíóúñ ]/g,'').substring(0,30);
       const nombre = `Charla_${fecha}_${obra}.pdf`;
       const folderId = document.getElementById('drive-folder-id').value.trim();
- 
-      mostrarEstado('loading', '☁️ Subiendo a Google Drive...', `Archivo: ${nombre}`);
- 
+      mostrarEstado('loading','☁️ Subiendo a Google Drive...',`Archivo: ${nombre}`);
       const pdfBlob = doc.output('blob');
       const metadata = { name: nombre, parents: [folderId], mimeType: 'application/pdf' };
       const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('metadata', new Blob([JSON.stringify(metadata)],{type:'application/json'}));
       form.append('file', pdfBlob);
- 
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${accessToken}` },
-        body: form
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+        method:'POST', headers:{Authorization:`Bearer ${accessToken}`}, body:form
       });
- 
       if (!res.ok) throw new Error(`Error ${res.status}: ${await res.text()}`);
       const data = await res.json();
- 
-      // Copia local
       doc.save(nombre);
- 
       mostrarResultadoExito(nombre, data.id);
       limpiarStorage();
- 
-    } catch (err) {
+    } catch(err) {
       console.error(err);
-      mostrarEstado('error', '✗ Error al subir', err.message || 'Intente nuevamente');
+      mostrarEstado('error','✗ Error al subir', err.message||'Intente nuevamente');
     }
   }
- 
   function mostrarInstruccionesConfig() {
-    document.getElementById('resultado-container').style.display = 'block';
-    document.getElementById('resumen-container').style.display = 'none';
-    document.getElementById('resultado-container').innerHTML = `
-      <div class="upload-status pending">
-        <div class="upload-icon">⚙️</div>
-        <div class="upload-msg">Configuración requerida</div>
-        <div class="upload-sub">Para subir automáticamente a Drive configure el Client ID de Google.</div>
-      </div>
-      <div class="info-box">
-        <strong>Mientras tanto, puede guardar el PDF localmente:</strong><br>
-        El archivo se descargará en este dispositivo.
-      </div>
+    document.getElementById('resultado-container').style.display='block';
+    document.getElementById('resumen-container').style.display='none';
+    document.getElementById('resultado-container').innerHTML=`
+      <div class="upload-status pending"><div class="upload-icon">⚙️</div><div class="upload-msg">Configuración requerida</div><div class="upload-sub">Configure el Client ID de Google para subir automáticamente.</div></div>
+      <div class="info-box"><strong>Mientras tanto, puede guardar el PDF localmente.</strong></div>
       <button class="btn-primary" onclick="guardarLocalSolo()">📄 Guardar PDF en este dispositivo</button>
-      <button class="btn-secondary" onclick="mostrarResumen()">← Volver</button>
-    `;
+      <button class="btn-secondary" onclick="mostrarResumen()">← Volver</button>`;
   }
- 
   async function guardarLocalSolo() {
     try {
-      mostrarEstado('loading', '⏳ Generando PDF...', 'Espere un momento');
+      mostrarEstado('loading','⏳ Generando PDF...','Espere un momento');
       const doc = await generarPDF();
-      const fecha = document.getElementById('fecha').value.replace(/-/g, '');
-      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
+      const fecha = document.getElementById('fecha').value.replace(/-/g,'');
+      const obra = document.getElementById('obra').value.replace(/[^a-zA-Z0-9]/g,'').substring(0,20);
       const nombre = `Charla_${fecha}_${obra}.pdf`;
       doc.save(nombre);
       mostrarResultadoLocal(nombre);
-    } catch (err) {
-      mostrarEstado('error', '✗ Error', err.message);
-    }
+    } catch(err) { mostrarEstado('error','✗ Error',err.message); }
   }
- 
-  function mostrarEstado(tipo, msg, sub) {
-    document.getElementById('resultado-container').style.display = 'block';
-    document.getElementById('resumen-container').style.display = 'none';
-    const iconos = { loading: '⏳', success: '✅', error: '❌', pending: '⚠️' };
-    const botonEscape = (tipo === 'error' || tipo === 'loading') ? `
-      <button class="btn-secondary" style="margin-top:14px;" onclick="mostrarResumen()">← Volver</button>` : '';
-    document.getElementById('resultado-container').innerHTML = `
-      <div class="upload-status ${tipo}">
-        <div class="upload-icon">${iconos[tipo]}</div>
-        <div class="upload-msg">${msg}</div>
-        <div class="upload-sub">${sub}</div>
-      </div>
-      ${botonEscape}
-    `;
+  function mostrarEstado(tipo,msg,sub) {
+    document.getElementById('resultado-container').style.display='block';
+    document.getElementById('resumen-container').style.display='none';
+    const iconos={loading:'⏳',success:'✅',error:'❌',pending:'⚠️'};
+    const botonEscape=(tipo==='error'||tipo==='loading')?`<button class="btn-secondary" style="margin-top:14px;" onclick="mostrarResumen()">← Volver</button>`:'';
+    document.getElementById('resultado-container').innerHTML=`<div class="upload-status ${tipo}"><div class="upload-icon">${iconos[tipo]}</div><div class="upload-msg">${msg}</div><div class="upload-sub">${sub}</div></div>${botonEscape}`;
   }
- 
   function mostrarResumen() {
-    document.getElementById('resultado-container').style.display = 'none';
-    document.getElementById('resumen-container').style.display = 'block';
+    document.getElementById('resultado-container').style.display='none';
+    document.getElementById('resumen-container').style.display='block';
   }
- 
-  function mostrarResultadoExito(nombre, fileId) {
-    document.getElementById('resultado-container').innerHTML = `
-      <div class="upload-status success">
-        <div class="upload-icon">✅</div>
-        <div class="upload-msg">¡Registro guardado exitosamente!</div>
-        <div class="upload-sub">Archivo: ${nombre}</div>
-      </div>
-      <div class="card">
-        <div class="resumen-row"><span class="resumen-label">Ubicación</span><span class="resumen-valor">Google Drive / SENERCOM</span></div>
-        <div class="resumen-row"><span class="resumen-label">Archivo</span><span class="resumen-valor" style="font-size:12px">${nombre}</span></div>
-        <div class="resumen-row"><span class="resumen-label">Copia local</span><span class="resumen-valor"><span class="badge badge-verde">✓ Descargada</span></span></div>
-      </div>
-      <button class="btn-primary btn-naranja" onclick="nuevaCharla()">+ Nueva charla</button>
-    `;
+  function mostrarResultadoExito(nombre,fileId) {
+    document.getElementById('resultado-container').innerHTML=`
+      <div class="upload-status success"><div class="upload-icon">✅</div><div class="upload-msg">¡Registro guardado exitosamente!</div><div class="upload-sub">Archivo: ${nombre}</div></div>
+      <div class="card"><div class="resumen-row"><span class="resumen-label">Ubicación</span><span class="resumen-valor">Google Drive / SENERCOM</span></div><div class="resumen-row"><span class="resumen-label">Archivo</span><span class="resumen-valor" style="font-size:12px">${nombre}</span></div><div class="resumen-row"><span class="resumen-label">Copia local</span><span class="resumen-valor"><span class="badge badge-verde">✓ Descargada</span></span></div></div>
+      <button class="btn-primary btn-naranja" onclick="nuevaCharla()">+ Nueva charla</button>`;
   }
- 
   function mostrarResultadoLocal(nombre) {
-    document.getElementById('resultado-container').style.display = 'block';
-    document.getElementById('resumen-container').style.display = 'none';
-    document.getElementById('resultado-container').innerHTML = `
-      <div class="upload-status success">
-        <div class="upload-icon">📄</div>
-        <div class="upload-msg">PDF guardado correctamente</div>
-        <div class="upload-sub">${nombre}</div>
-      </div>
-      <div class="info-box" style="margin-top:12px;">Puede agregar más trabajadores al registro o iniciar una nueva charla.</div>
+    document.getElementById('resultado-container').style.display='block';
+    document.getElementById('resumen-container').style.display='none';
+    document.getElementById('resultado-container').innerHTML=`
+      <div class="upload-status success"><div class="upload-icon">📄</div><div class="upload-msg">PDF guardado correctamente</div><div class="upload-sub">${nombre}</div></div>
+      <div class="info-box" style="margin-top:12px;">Puede agregar más trabajadores o iniciar una nueva charla.</div>
       <button class="btn-primary" style="background:var(--azul-claro);margin-top:8px;" onclick="volverAFirmas()">✍️ Agregar más trabajadores</button>
-      <button class="btn-primary btn-naranja" style="margin-top:8px;" onclick="nuevaCharla()">+ Nueva charla</button>
-    `;
+      <button class="btn-primary btn-naranja" style="margin-top:8px;" onclick="nuevaCharla()">+ Nueva charla</button>`;
   }
- 
   function volverAFirmas() {
-    document.getElementById('resultado-container').style.display = 'none';
-    document.getElementById('resumen-container').style.display = 'block';
-    irAPaso(2);
-    window.scrollTo(0, 0);
+    document.getElementById('resultado-container').style.display='none';
+    document.getElementById('resumen-container').style.display='block';
+    irAPaso(2); window.scrollTo(0,0);
   }
- 
+
   // ═══════════════════════════════════════════════════════
-  //  NUEVA CHARLA / RESETEAR
+  //  NUEVA CHARLA
   // ═══════════════════════════════════════════════════════
   function nuevaCharla() {
     try {
-      // 1. Resetear variables globales
-      asistentes = [];
-      tipoSeleccionado = '';
-      accessToken = null;
- 
-      // 2. Limpiar todos los campos de texto
-      ['obra','area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
+      asistentes=[]; tipoSeleccionado=''; accessToken=null;
+      ['obra','area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.value='';
       });
- 
-      // 3. Fecha y hora actuales
-      const hoy = new Date();
-      const fechaEl = document.getElementById('fecha');
-      if (fechaEl) fechaEl.value = hoy.toISOString().split('T')[0];
-      const hh = String(hoy.getHours()).padStart(2,'0');
-      const mm = String(hoy.getMinutes()).padStart(2,'0');
-      const hiEl = document.getElementById('hora_inicio');
-      const htEl = document.getElementById('hora_termino');
-      if (hiEl) hiEl.value = hh + ':' + mm;
-      if (htEl) htEl.value = '';
- 
-      // 4. Limpiar selecciones de tipo y riesgos
-      document.querySelectorAll('.tipo-item').forEach(el => el.classList.remove('selected'));
-      document.querySelectorAll('.riesgo-item').forEach(el => el.classList.remove('checked'));
- 
-      // 5. Limpiar lista de asistentes
+      const hoy=new Date();
+      const fechaEl=document.getElementById('fecha'); if(fechaEl) fechaEl.value=hoy.toISOString().split('T')[0];
+      const hh=String(hoy.getHours()).padStart(2,'0'), mm=String(hoy.getMinutes()).padStart(2,'0');
+      const hiEl=document.getElementById('hora_inicio'); if(hiEl) hiEl.value=hh+':'+mm;
+      const htEl=document.getElementById('hora_termino'); if(htEl) htEl.value='';
+      document.querySelectorAll('.tipo-item').forEach(el=>el.classList.remove('selected'));
+      document.querySelectorAll('.riesgo-item').forEach(el=>el.classList.remove('checked'));
       renderAsistentes();
- 
-      // 6. Mostrar pantalla principal y ocultar resultado
-      const resCont = document.getElementById('resultado-container');
-      const resCont2 = document.getElementById('resumen-container');
-      if (resCont) resCont.style.display = 'none';
-      if (resCont2) resCont2.style.display = 'block';
- 
-      // 7. Limpiar storage e ir al paso 0
-      limpiarStorage();
-      irAPaso(0);
-      window.scrollTo(0, 0);
-      toast('✓ Nueva charla lista', 'success');
-    } catch(err) {
-      console.error('Error en nuevaCharla:', err);
-      // Forzar recarga como último recurso
-      limpiarStorage();
-      window.location.reload();
-    }
+      const resCont=document.getElementById('resultado-container');
+      const resCont2=document.getElementById('resumen-container');
+      if(resCont) resCont.style.display='none';
+      if(resCont2) resCont2.style.display='block';
+      limpiarStorage(); irAPaso(0); window.scrollTo(0,0);
+      toast('✓ Nueva charla lista','success');
+    } catch(err) { limpiarStorage(); window.location.reload(); }
   }
- 
+
   // ═══════════════════════════════════════════════════════
-  //  PERSISTENCIA LOCAL (para modo offline)
+  //  PERSISTENCIA LOCAL
   // ═══════════════════════════════════════════════════════
   function guardarEnStorage() {
     try {
-      const estado = {
-        obra: document.getElementById('obra').value,
-        fecha: document.getElementById('fecha').value,
-        area: document.getElementById('area').value,
-        hora_inicio: document.getElementById('hora_inicio').value,
-        hora_termino: document.getElementById('hora_termino').value,
-        relator: document.getElementById('relator').value,
-        cargo_relator: document.getElementById('cargo_relator').value,
-        curso: document.getElementById('curso').value,
-        temas: document.getElementById('temas').value,
-        tipo: tipoSeleccionado,
-        otros_riesgos: document.getElementById('otros_riesgos').value,
-        riesgosChecked: Array.from(document.querySelectorAll('.riesgo-item.checked')).map(el => el.querySelector('span').textContent),
-        asistentes: asistentes.map(a => ({ ...a, firmaTemp: undefined }))
+      const estado={
+        obra:document.getElementById('obra').value, fecha:document.getElementById('fecha').value,
+        area:document.getElementById('area').value, hora_inicio:document.getElementById('hora_inicio').value,
+        hora_termino:document.getElementById('hora_termino').value, relator:document.getElementById('relator').value,
+        cargo_relator:document.getElementById('cargo_relator').value, curso:document.getElementById('curso').value,
+        temas:document.getElementById('temas').value, tipo:tipoSeleccionado,
+        otros_riesgos:document.getElementById('otros_riesgos').value,
+        riesgosChecked:Array.from(document.querySelectorAll('.riesgo-item.checked')).map(el=>el.querySelector('span').textContent),
+        asistentes:asistentes.map(a=>({...a,firmaTemp:undefined}))
       };
-      localStorage.setItem('senercom_charla', JSON.stringify(estado));
-    } catch(e) {}
+      localStorage.setItem('senercom_charla',JSON.stringify(estado));
+    } catch(e){}
   }
- 
   function cargarDesdeStorage() {
     try {
-      const raw = localStorage.getItem('senercom_charla');
-      if (!raw) return;
-      const e = JSON.parse(raw);
-      if (e.obra) document.getElementById('obra').value = e.obra;
-      if (e.fecha) document.getElementById('fecha').value = e.fecha;
-      if (e.area) document.getElementById('area').value = e.area;
-      if (e.hora_inicio) document.getElementById('hora_inicio').value = e.hora_inicio;
-      if (e.hora_termino) document.getElementById('hora_termino').value = e.hora_termino;
-      if (e.relator) document.getElementById('relator').value = e.relator;
-      if (e.cargo_relator) document.getElementById('cargo_relator').value = e.cargo_relator;
-      if (e.curso) document.getElementById('curso').value = e.curso;
-      if (e.temas) document.getElementById('temas').value = e.temas;
-      if (e.tipo) {
-        tipoSeleccionado = e.tipo;
-        document.querySelectorAll('.tipo-item').forEach(el => {
-          if (el.textContent.trim().includes(e.tipo)) el.classList.add('selected');
-        });
+      const raw=localStorage.getItem('senercom_charla'); if(!raw) return;
+      const e=JSON.parse(raw);
+      if(e.obra) document.getElementById('obra').value=e.obra;
+      if(e.fecha) document.getElementById('fecha').value=e.fecha;
+      if(e.area) document.getElementById('area').value=e.area;
+      if(e.hora_inicio) document.getElementById('hora_inicio').value=e.hora_inicio;
+      if(e.hora_termino) document.getElementById('hora_termino').value=e.hora_termino;
+      if(e.relator) document.getElementById('relator').value=e.relator;
+      if(e.cargo_relator) document.getElementById('cargo_relator').value=e.cargo_relator;
+      if(e.curso) document.getElementById('curso').value=e.curso;
+      if(e.temas) document.getElementById('temas').value=e.temas;
+      if(e.tipo) {
+        tipoSeleccionado=e.tipo;
+        document.querySelectorAll('.tipo-item').forEach(el=>{ if(el.textContent.trim().includes(e.tipo)) el.classList.add('selected'); });
       }
-      if (e.otros_riesgos) document.getElementById('otros_riesgos').value = e.otros_riesgos;
-      if (e.riesgosChecked && e.riesgosChecked.length) {
-        setTimeout(() => {
-          document.querySelectorAll('.riesgo-item').forEach(el => {
-            if (e.riesgosChecked.includes(el.querySelector('span').textContent)) el.classList.add('checked');
-          });
-        }, 100);
+      if(e.otros_riesgos) document.getElementById('otros_riesgos').value=e.otros_riesgos;
+      if(e.riesgosChecked&&e.riesgosChecked.length) {
+        setTimeout(()=>{ document.querySelectorAll('.riesgo-item').forEach(el=>{ if(e.riesgosChecked.includes(el.querySelector('span').textContent)) el.classList.add('checked'); }); },100);
       }
-      if (e.asistentes && e.asistentes.length) {
-        asistentes = e.asistentes;
-        renderAsistentes();
-      }
-    } catch(e) {}
+      if(e.asistentes&&e.asistentes.length) { asistentes=e.asistentes; renderAsistentes(); }
+    } catch(e){}
   }
- 
-  function limpiarStorage() {
-    try { localStorage.removeItem('senercom_charla'); } catch(e) {}
-  }
- 
+  function limpiarStorage() { try { localStorage.removeItem('senercom_charla'); } catch(e){} }
+
   // ═══════════════════════════════════════════════════════
-  //  FORZAR ACTUALIZACIÓN / LIMPIAR CACHÉ
+  //  FORZAR ACTUALIZACIÓN
   // ═══════════════════════════════════════════════════════
   async function forzarActualizacion() {
     try {
-      // Limpiar caché del service worker
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map(k => caches.delete(k)));
-      }
-      // Desregistrar service workers
-      if ('serviceWorker' in navigator) {
-        const regs = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map(r => r.unregister()));
-      }
-      // Limpiar localStorage
+      if('caches' in window) { const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+      if('serviceWorker' in navigator) { const regs=await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r=>r.unregister())); }
       limpiarStorage();
-    } catch(e) {
-      console.warn('Error limpiando caché:', e);
-    }
-    // Recargar siempre, sin depender de toast
+    } catch(e){ console.warn('Error limpiando caché:',e); }
     window.location.reload(true);
   }
- 
-  // ═══════════════════════════════════════════════════════
-  //  SERVICE WORKER (PWA offline)
-  // ═══════════════════════════════════════════════════════
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
- 
-  // ═══════════════════════════════════════════════════════
-  //  TOAST (notificación flotante)
-  // ═══════════════════════════════════════════════════════
-  let _toastTimer = null;
-  function toast(msg, tipo) {
-    const el = document.getElementById('toast');
-    if (!el) return;
-    el.textContent = msg;
-    el.className = 'show' + (tipo ? ' ' + tipo : '');
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+
+  // Service Worker
+  if('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+  // Toast
+  let _toastTimer=null;
+  function toast(msg,tipo) {
+    const el=document.getElementById('toast'); if(!el) return;
+    el.textContent=msg; el.className='show'+(tipo?' '+tipo:'');
+    clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>{el.className='';},3000);
   }
   </script>
 </body>
 </html>
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
