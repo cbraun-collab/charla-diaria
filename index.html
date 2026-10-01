@@ -1037,14 +1037,20 @@
       let ly=cy+7;lineas.forEach(l=>{doc.text(l,x+1.5,ly);ly+=al;});return h;
     };
     // Cabecera
-    doc.setFillColor(...AZUL);doc.rect(0,0,PW,22,'F');
-    doc.setFillColor(...NARANJA);doc.rect(0,22,PW,1.5,'F');
-    doc.setFillColor(...NARANJA);doc.circle(PW-18,11,8,'F');
-    doc.setFontSize(7);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('SNR',PW-18,12.5,{align:'center'});
-    doc.setFontSize(14);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('REGISTRO DE TRABAJO SEGURO',ML,10);
+    doc.setFillColor(...AZUL);doc.rect(0,0,PW,26,'F');
+    doc.setFillColor(...NARANJA);doc.rect(0,26,PW,1.5,'F');
+    // Logo Senercom en el PDF (esquina derecha)
+    const logoEl = document.querySelector('#logo-header img');
+    if(logoEl && logoEl.src){
+      try{
+        const logoW=28, logoH=14;
+        doc.addImage(logoEl.src,'PNG',PW-ML-logoW,4,logoW,logoH);
+      }catch(e){}
+    }
+    doc.setFontSize(14);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.text('REGISTRO DE TRABAJO SEGURO',ML,11);
     doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(200,220,225);
-    doc.text('SENERCOM LIMITADA  |  Art. N°21 Decreto N°40 Ley 16.744',ML,17);
-    y=26;
+    doc.text('SENERCOM LIMITADA  |  Art. N°21 Decreto N°40 Ley 16.744',ML,19);
+    y=30;
     // Datos obra
     doc.setFillColor(...AZUL);doc.rect(ML,y,W,6,'F');
     doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);doc.text('DATOS DE LA OBRA',ML+2,y+4.2);y+=7;
@@ -1119,7 +1125,7 @@
     doc.setFontSize(6.5);doc.setFont('helvetica','italic');doc.setTextColor(...TEXTSEC);
     doc.text('Los firmantes declaran haber recibido instrucción de acuerdo al art. N°21 Decreto N°40 de la Ley 16.744.',PW/2,y+5,{align:'center'});
     doc.setFont('helvetica','normal');doc.setTextColor(...AZUL);
-    doc.text(`Generado: ${new Date().toLocaleString('es-CL')}  |  SENERCOM Limitada`,PW/2,y+10,{align:'center'});
+    doc.text(`Generado: ${new Date().toLocaleString('es-CL')}  |  SENERCOM Limitada  |  PWA-SSO-002`,PW/2,y+10,{align:'center'});
     return doc;
   }
 
