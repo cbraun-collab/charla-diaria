@@ -173,7 +173,7 @@
     </div>
     <div style="flex:1">
       <div class="header-title">Charla Diaria</div>
-      <div class="header-sub">SENERCOM Limitada · PWA-PRV-001</div>
+      <div class="header-sub">SENERCOM Limitada · PWA-SSO-002</div>
     </div>
     <button onclick="forzarActualizacion()" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;border-radius:7px;padding:6px 10px;font-size:12px;cursor:pointer;">🔄</button>
   </header>
@@ -249,6 +249,20 @@
           <div class="field">
             <label>Curso específico</label>
             <input type="text" id="curso" placeholder="Ej: Altura">
+          </div>
+        </div>
+        <div class="field" style="margin-top:4px;">
+          <label>Firma del relator *</label>
+          <div class="firma-container" id="fc-relator">
+            <canvas id="canvas-relator" height="140"></canvas>
+            <div class="firma-label" id="label-relator">Firme aquí con el dedo</div>
+          </div>
+          <div class="firma-actions">
+            <button class="btn-sm btn-limpiar" onclick="limpiarFirmaRelator()">🗑 Limpiar</button>
+            <button class="btn-sm btn-confirmar" id="btn-confirmar-relator" onclick="confirmarFirmaRelator()">✓ Confirmar firma</button>
+          </div>
+          <div id="relator-firmado-badge" style="display:none;margin-top:6px;">
+            <span class="badge badge-verde">✓ Firma del relator confirmada</span>
           </div>
         </div>
       </div>
@@ -505,6 +519,8 @@
   let asistentes = [];
   let accessToken = null;
   let tokenCliente = null;
+  let firmaRelatorData = null;   // base64 firma confirmada del relator
+  let firmaRelatorConfirmada = false;
   // Obra seleccionada
   let clienteSeleccionado = null;  // {id, nombre, codigo}
   let obraSeleccionada = null;     // {id, nombre, codigo}
@@ -542,6 +558,7 @@
     document.getElementById('hora_inicio').value = hh+':'+mm;
     generarRiesgos();
     cargarDesdeStorage();
+    iniciarCanvasRelator();
     verificarLpdp();
     renderSelectorCliente();
     window.addEventListener('offline',()=>document.body.classList.add('offline'));
@@ -774,7 +791,65 @@
     if (!obraSeleccionada) { toast('Selecciona una obra','error'); return; }
     if (!document.getElementById('fecha').value) { toast('Seleccione la fecha','error'); return; }
     if (!document.getElementById('relator').value.trim()) { toast('Ingrese el nombre del relator','error'); return; }
+    if (!firmaRelatorConfirmada) { toast('Confirme la firma del relator','error'); return; }
     irAPaso(1);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  CANVAS FIRMA RELATOR
+  // ═══════════════════════════════════════════════════════
+  function iniciarCanvasRelator() {
+    const canvas = document.getElementById('canvas-relator');
+    if (!canvas) return;
+    const container = document.getElementById('fc-relator');
+    canvas.width = container.offsetWidth || 300;
+    canvas.height = 140;
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#003B49'; ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    let drawing = false;
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+      if (e.touches) return { x:(e.touches[0].clientX-rect.left)*sx, y:(e.touches[0].clientY-rect.top)*sy };
+      return { x:(e.clientX-rect.left)*sx, y:(e.clientY-rect.top)*sy };
+    };
+    const start = (e) => {
+      e.preventDefault(); drawing = true;
+      const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+      document.getElementById('label-relator').style.opacity = '0';
+    };
+    const draw = (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+    const end = () => { if (!drawing) return; drawing = false; ctx.closePath(); };
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, { passive:false });
+    canvas.addEventListener('touchmove', draw, { passive:false });
+    canvas.addEventListener('touchend', end);
+  }
+  function limpiarFirmaRelator() {
+    const canvas = document.getElementById('canvas-relator');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    firmaRelatorData = null; firmaRelatorConfirmada = false;
+    document.getElementById('label-relator').style.opacity = '1';
+    document.getElementById('relator-firmado-badge').style.display = 'none';
+    document.getElementById('btn-confirmar-relator').disabled = false;
+  }
+  function confirmarFirmaRelator() {
+    const canvas = document.getElementById('canvas-relator');
+    const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+    if (!data.some(v => v !== 0)) { toast('Firme en el espacio indicado', 'error'); return; }
+    const cb = document.createElement('canvas');
+    cb.width = canvas.width; cb.height = canvas.height;
+    const ctxb = cb.getContext('2d');
+    ctxb.fillStyle = '#ffffff'; ctxb.fillRect(0, 0, cb.width, cb.height);
+    ctxb.drawImage(canvas, 0, 0);
+    firmaRelatorData = cb.toDataURL('image/png');
+    firmaRelatorConfirmada = true;
+    document.getElementById('relator-firmado-badge').style.display = 'block';
+    document.getElementById('btn-confirmar-relator').disabled = true;
+    toast('✓ Firma del relator confirmada', 'success');
   }
 
   // ═══════════════════════════════════════════════════════
@@ -927,6 +1002,7 @@
       <div class="resumen-row"><span class="resumen-label">Obra</span><span class="resumen-valor">${obraTexto}</span></div>
       <div class="resumen-row"><span class="resumen-label">Fecha</span><span class="resumen-valor">${fechaFmt}</span></div>
       <div class="resumen-row"><span class="resumen-label">Relator</span><span class="resumen-valor">${document.getElementById('relator').value}</span></div>
+      <div class="resumen-row"><span class="resumen-label">Firma relator</span><span class="resumen-valor">${firmaRelatorConfirmada?'<span class=\"badge badge-verde\">✓ Confirmada</span>':'<span class=\"badge badge-naranja\">Pendiente</span>'}</span></div>
       <div class="resumen-row"><span class="resumen-label">Tipo</span><span class="resumen-valor">${tipoSeleccionado||'No especificado'}</span></div>
       <div class="resumen-row"><span class="resumen-label">Riesgos</span><span class="resumen-valor">${riesgos.length?riesgos.length+' identificados':'Ninguno'}</span></div>
       <div class="resumen-row"><span class="resumen-label">Asistentes</span><span class="resumen-valor"><span class="badge badge-verde">✓ ${asistentes.filter(a=>a.firmado).length} con firma</span></span></div>`;
@@ -984,6 +1060,15 @@
     celda('Relator',document.getElementById('relator').value,ML,c3a,y);
     celda('Cargo',document.getElementById('cargo_relator').value,ML+c3a,c3b,y);
     celda('Tipo de charla',tipoSeleccionado,ML+c3a+c3b,c3c,y);y+=11;
+    // Firma del relator
+    const firmaH=18;
+    doc.setFillColor(248,250,251);doc.rect(ML,y,W,firmaH,'F');
+    doc.setDrawColor(...BORDE);doc.setLineWidth(0.2);doc.rect(ML,y,W,firmaH,'S');
+    doc.setFillColor(230,238,241);doc.rect(ML,y,W,4,'F');
+    doc.setFontSize(6);doc.setTextColor(...TEXTSEC);doc.setFont('helvetica','bold');
+    doc.text('FIRMA DEL RELATOR',ML+1.5,y+3);
+    if(firmaRelatorData){try{doc.addImage(firmaRelatorData,'PNG',ML+1,y+4.5,60,firmaH-6);}catch(e){}}
+    y+=firmaH+1;
     const altoTemas=celdaM('Temas tratados / Observaciones',document.getElementById('temas').value,ML,W,y,8.5,14);
     y+=altoTemas+1;
     if(y>PH-60){doc.addPage();y=15;}
@@ -1141,6 +1226,12 @@
     try{
       asistentes=[];tipoSeleccionado='';
       obraSeleccionada=null;clienteSeleccionado=null;carpetaDestinoId=null;
+      firmaRelatorData=null;firmaRelatorConfirmada=false;
+      const canvasR=document.getElementById('canvas-relator');
+      if(canvasR){canvasR.getContext('2d').clearRect(0,0,canvasR.width,canvasR.height);}
+      const labelR=document.getElementById('label-relator');if(labelR)labelR.style.opacity='1';
+      const badgeR=document.getElementById('relator-firmado-badge');if(badgeR)badgeR.style.display='none';
+      const btnR=document.getElementById('btn-confirmar-relator');if(btnR)btnR.disabled=false;
       ['area','relator','cargo_relator','curso','temas','otros_riesgos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
       const hoy=new Date();
       document.getElementById('fecha').value=hoy.toISOString().split('T')[0];
@@ -1204,6 +1295,7 @@
         relator:document.getElementById('relator').value,cargo_relator:document.getElementById('cargo_relator').value,
         curso:document.getElementById('curso').value,temas:document.getElementById('temas').value,
         tipo:tipoSeleccionado,otros_riesgos:document.getElementById('otros_riesgos').value,
+        firmaRelatorData,firmaRelatorConfirmada,
         riesgosChecked:Array.from(document.querySelectorAll('.riesgo-item.checked')).map(el=>el.querySelector('span').textContent),
         asistentes:asistentes.map(a=>({...a,firmaTemp:undefined})),
         clienteSeleccionado,obraSeleccionada,carpetaDestinoId
@@ -1218,6 +1310,18 @@
       if(e.tipo){tipoSeleccionado=e.tipo;document.querySelectorAll('.tipo-item').forEach(el=>{if(el.textContent.trim().includes(e.tipo))el.classList.add('selected');});}
       if(e.riesgosChecked&&e.riesgosChecked.length){setTimeout(()=>{document.querySelectorAll('.riesgo-item').forEach(el=>{if(e.riesgosChecked.includes(el.querySelector('span').textContent))el.classList.add('checked');});},100);}
       if(e.asistentes&&e.asistentes.length){asistentes=e.asistentes;renderAsistentes();}
+      if(e.firmaRelatorData){
+        firmaRelatorData=e.firmaRelatorData; firmaRelatorConfirmada=e.firmaRelatorConfirmada||false;
+        if(firmaRelatorConfirmada){
+          setTimeout(()=>{
+            const canvas=document.getElementById('canvas-relator');
+            if(canvas){const img=new Image();img.onload=()=>canvas.getContext('2d').drawImage(img,0,0);img.src=firmaRelatorData;}
+            document.getElementById('label-relator').style.opacity='0';
+            document.getElementById('relator-firmado-badge').style.display='block';
+            const btn=document.getElementById('btn-confirmar-relator');if(btn)btn.disabled=true;
+          },200);
+        }
+      }
       if(e.clienteSeleccionado){clienteSeleccionado=e.clienteSeleccionado;}
       if(e.obraSeleccionada){obraSeleccionada=e.obraSeleccionada;carpetaDestinoId=e.carpetaDestinoId;}
     }catch(e){}
